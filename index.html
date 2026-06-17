@@ -276,7 +276,7 @@
                     id: b.c[0] ? b.c[0].v.toString().trim() : '',
                     nama: b.c[1] ? b.c[1].v : '',
                     wa: b.c[2] ? b.c[2].v.toString().trim() : '',
-                    minKirim: b.c[3] ? Number(b.c[3].v) : 0,
+                    minKirim: b.c[3] ? Number(b.c[3].v) || 0 : 0,
                     layananAntar: b.c[4] ? b.c[4].v : 'Tidak',
                     status: b.c[5] ? b.c[5].v : 'Tutup',
                     bypass: b.c[6] ? b.c[6].v : '',
@@ -285,11 +285,11 @@
                     jamBuka: b.c[9] ? b.c[9].v : '',
                     ongkir: b.c[10] ? b.c[10].v : '0', 
                     catatan: b.c[11] ? b.c[11].v : '',
-                    minFree: b.c[12] ? Number(b.c[12].v) : null,
-                    minPromo: b.c[13] ? Number(b.c[13].v) : null,
-                    ongkirPromo: b.c[14] ? Number(b.c[14].v) : null,
-                    antiPromo: b.c[15] ? b.c[15].v.toString().toLowerCase() : '',
-                    ongkirKhusus: b.c[16] ? Number(b.c[16].v) : null
+                    minFree: (b.c[12] && b.c[12].v !== null && b.c[12].v !== '') ? Number(b.c[12].v) : null,
+                    minPromo: (b.c[13] && b.c[13].v !== null && b.c[13].v !== '') ? Number(b.c[13].v) : null,
+                    ongkirPromo: (b.c[14] && b.c[14].v !== null && b.c[14].v !== '') ? Number(b.c[14].v) : null,
+                    antiPromo: b.c[15] ? b.c[15].v.toString().toLowerCase().trim() : '',
+                    ongkirKhusus: (b.c[16] && b.c[16].v !== null && b.c[16].v !== '') ? Number(b.c[16].v) : null
                 })).filter(t => t.id !== 'ID_Toko' && t.id !== '');
                 renderModalToko();
             } catch (err) { console.error("Gagal memuat Daftar_Toko:", err); }
@@ -340,15 +340,17 @@
         }
 
         function kalkulasiOngkirToko(infoToko, subtotalBelanja) {
-            let hasil = { nominal: 0, status: 'Flat / Tidak Ada', pemicuAnti: '' };
+            let hasil = { nominal: 0, status: 'Tidak Ada / Ambil Sendiri', pemicuAnti: '' };
             if (!infoToko) return hasil;
 
             let ongkirDasar = Number(infoToko.ongkir.toString().replace(/[^0-9]/g, '')) || 0;
             hasil.nominal = ongkirDasar;
+            hasil.status = ongkirDasar > 0 ? 'Tarif Standar Toko' : 'Gratis Ongkir Toko';
 
-            if (infoToko.antiPromo && infoToko.ongkirKhusus !== null) {
+            // 1. JALUR PRIORITAS: CEK JIKA ADA PRODUK KHUSUS (GALON / GAS) YANG DIGRATISKAN
+            if (infoToko.antiPromo && infoToko.antiPromo !== '') {
                 let kataKunciArray = infoToko.antiPromo.split(',').map(k => k.trim()).filter(k => k !== '');
-                let ditemukanAnti = false;
+                let ditemukanBarangKhusus = false;
                 let kataPemicu = '';
 
                 for (let idProd in keranjang) {
@@ -357,35 +359,36 @@
                         let namaProdLower = prod.nama.toLowerCase();
                         for (let kunci of kataKunciArray) {
                             if (namaProdLower.includes(kunci)) {
-                                ditemukanAnti = true;
+                                ditemukanBarangKhusus = true;
                                 kataPemicu = kunci;
                                 break;
                             }
                         }
                     }
-                    if (ditemukanAnti) break;
+                    if (ditemukanBarangKhusus) break;
                 }
 
-                if (ditemukanAnti) {
-                    hasil.nominal = infoToko.ongkirKhusus;
-                    hasil.status = `Khusus (Ada barang berat: ${kataPemicu})`;
-                    return hasil;
+                if (ditemukanBarangKhusus) {
+                    hasil.nominal = 0;
+                    hasil.status = `Gratis Ongkir (Promo Produk: ${kataPemicu})`;
+                    return hasil; 
                 }
             }
 
-            if (infoToko.minFree !== null && subtotalBelanja >= infoToko.minFree) {
+            // 2. JALUR NORMAL A: CEK TOTAL BELANJA UNTUK GRATIS ONGKIR
+            if (infoToko.minFree !== null && infoToko.minFree > 0 && subtotalBelanja >= infoToko.minFree) {
                 hasil.nominal = 0;
                 hasil.status = 'Gratis Ongkir (Promo Belanja)';
                 return hasil;
             }
 
-            if (infoToko.minPromo !== null && infoToko.ongkirPromo !== null && subtotalBelanja >= infoToko.minPromo) {
+            // 3. JALUR NORMAL B: CEK TOTAL BELANJA UNTUK DISKON ONGKIR (ONGKIR PROMO)
+            if (infoToko.minPromo !== null && infoToko.minPromo > 0 && infoToko.ongkirPromo !== null && subtotalBelanja >= infoToko.minPromo) {
                 hasil.nominal = infoToko.ongkirPromo;
                 hasil.status = 'Tarif Promo Murah';
                 return hasil;
             }
 
-            hasil.status = ongkirDasar > 0 ? 'Tarif Standar Toko' : 'Gratis / Ambil Sendiri';
             return hasil;
         }
 
