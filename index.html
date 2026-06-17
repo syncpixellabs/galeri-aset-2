@@ -338,7 +338,7 @@
                 document.getElementById('grid-produk').innerHTML = `<div class="col-span-full text-center py-12 text-red-500 text-sm">Gagal memuat produk toko. Silakan periksa kembali koneksi internet Anda.</div>`;
             }
         }
-
+           // Engine Hitung Ongkir Otomatis Berdasarkan Awalan ID Produk & Kolom AntiPromo
         function kalkulasiOngkirToko(infoToko, subtotalBelanja) {
             let hasil = { nominal: 0, status: 'Tidak Ada / Ambil Sendiri', pemicuAnti: '' };
             if (!infoToko) return hasil;
@@ -347,8 +347,39 @@
             hasil.nominal = ongkirDasar;
             hasil.status = ongkirDasar > 0 ? 'Tarif Standar Toko' : 'Gratis Ongkir Toko';
 
-            // 1. JALUR PRIORITAS: CEK JIKA ADA PRODUK KHUSUS (GALON / GAS) YANG DIGRATISKAN
-            if (infoToko.antiPromo && infoToko.antiPromo !== '') {
+            let adaAwalan10 = false;
+            let adaAwalan5 = false;
+            let idAwalan10 = '';
+            let idAwalan5 = '';
+
+            // JALUR SCAN UTAMA: Periksa awalan ID Produk yang ada di dalam keranjang belanja
+            for (let idProd in keranjang) {
+                let idString = idProd.toString().trim();
+                if (idString.startsWith('10')) {
+                    adaAwalan10 = true;
+                    idAwalan10 = idString;
+                } else if (idString.startsWith('5')) {
+                    adaAwalan5 = true;
+                    idAwalan5 = idString;
+                }
+            }
+
+            // KONDISI 1: PRIORITAS TERTINGGI - JIKA ADA ID BERAWALAN 10
+            if (adaAwalan10) {
+                hasil.nominal = 10000;
+                hasil.status = `Ongkir Khusus (ID Berawalan 10: ${idAwalan10})`;
+                return hasil;
+            }
+
+            // KONDISI 2: JIKA ADA ID BERAWALAN 5
+            if (adaAwalan5) {
+                hasil.nominal = 5000;
+                hasil.status = `Ongkir Khusus (ID Berawalan 5: ${idAwalan5})`;
+                return hasil;
+            }
+
+            // KONDISI 3: CEK PRODUK KHUSUS GRATISAN (GALON / GAS) DARI KOLOM ANTIPROMO
+            if (infoToko.antiPromo && infoToko.antiPromo.trim() !== '') {
                 let kataKunciArray = infoToko.antiPromo.split(',').map(k => k.trim()).filter(k => k !== '');
                 let ditemukanBarangKhusus = false;
                 let kataPemicu = '';
@@ -375,14 +406,14 @@
                 }
             }
 
-            // 2. JALUR NORMAL A: CEK TOTAL BELANJA UNTUK GRATIS ONGKIR
+            // KONDISI 4: JALUR TOTAL BELANJA MINFREE (GRATIS ONGKIR PROMO)
             if (infoToko.minFree !== null && infoToko.minFree > 0 && subtotalBelanja >= infoToko.minFree) {
                 hasil.nominal = 0;
                 hasil.status = 'Gratis Ongkir (Promo Belanja)';
                 return hasil;
             }
 
-            // 3. JALUR NORMAL B: CEK TOTAL BELANJA UNTUK DISKON ONGKIR (ONGKIR PROMO)
+            // KONDISI 5: JALUR TOTAL BELANJA MINPROMO (ONGKIR MURAH)
             if (infoToko.minPromo !== null && infoToko.minPromo > 0 && infoToko.ongkirPromo !== null && subtotalBelanja >= infoToko.minPromo) {
                 hasil.nominal = infoToko.ongkirPromo;
                 hasil.status = 'Tarif Promo Murah';
@@ -391,8 +422,7 @@
 
             return hasil;
         }
-
-        function renderProduk() {
+                function renderProduk() {
             const grid = document.getElementById('grid-produk');
             const kataKunci = queryPencarian.toLowerCase().trim().split(/\s+/).filter(k => k.length > 0);
 
@@ -608,6 +638,25 @@
             });
         }
 
+        // Fungsi Membuat & Menampilkan Notifikasi Perubahan Ongkir Berjalan
+        function tampilkanNotifikasiOngkir(teksPesan) {
+            const toastLama = document.querySelector('.toast-ongkir');
+            if(toastLama) toastLama.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'toast-ongkir';
+            toast.innerHTML = `<i class="fa-solid fa-truck-fast text-green-400"></i> <span>${teksPesan}</span>`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 50);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Manajemen Keranjang Belanja dengan Sistem Notifikasi Ongkir Real-time
         function tambahKeKeranjang(idProduk, idToko) {
             if (keranjangIdToko && keranjangIdToko !== idToko) {
                 const infoTokoLama = databaseToko.find(t => t.id === keranjangIdToko);
@@ -619,6 +668,20 @@
             keranjangIdToko = idToko;
             keranjang[idProduk] = (keranjang[idProduk] || 0) + 1;
             updateBadgeKeranjang();
+
+            // Ambil info ongkir real-time untuk pop up
+            const infoToko = databaseToko.find(t => t.id === idToko);
+            let subtotalHarga = 0;
+            Object.keys(keranjang).forEach(id => {
+                const p = databaseProduk.find(prod => prod.idProduk === id);
+                if (p) subtotalHarga += p.harga * keranjang[id];
+            });
+
+            let cekOngkir = kalkulasiOngkirToko(infoToko, subtotalHarga);
+            let nominalTeks = cekOngkir.nominal === 0 ? "Gratis!" : `Rp${cekOngkir.nominal.toLocaleString('id-ID')}`;
+            
+            // Picu kotak pop up notifikasi
+            tampilkanNotifikasiOngkir(`Barang dimasukkan! Ongkir saat ini: ${nominalTeks}`);
         }
 
         function aturQtyItem(idProduk, jumlah) {
