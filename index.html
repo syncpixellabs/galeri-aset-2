@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grosir Bersama - Mega Katalog</title>
-    <!-- Jalur penghubung ke file manifest agar bisa diinstal di layar HP -->
-    <link rel="manifest" href="manifest.json">
-    <!-- Mendukung PWA (Progressive Web App) -->
-    <meta name="theme-color" content="#16a34a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Grosir Bersama">
+    <!--  KODE PENGGANTINYA -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grosir Bersama - Mega Katalog</title>
+<!-- Jalur penghubung ke file manifest agar bisa diinstal di layar HP -->
+<link rel="manifest" href="manifest.json">
+<!-- Mendukung PWA (Progressive Web App) -->
+<meta name="theme-color" content="#16a34a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Grosir Bersama">
     
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -31,6 +32,40 @@
         #ptr-indicator.visible {
             transform: translateY(0);
             opacity: 1;
+        }
+
+        /* Gaya Visual Notifikasi Ongkir & Smart Banner */
+        .toast-ongkir {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            opacity: 0;
+            background-color: #1f2937;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+            width: max-content;
+            max-width: 90%;
+        }
+        .toast-ongkir.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
     </style>
 </head>
@@ -228,7 +263,7 @@
         let databaseToko = [];
         let databaseProduk = [];
         let keranjang = {}; 
-        let wishlist = []; 
+        let wishlist = []; // Menyimpan array idProduk yang difavoritkan
         let keranjangIdToko = null; 
 
         let modeAktif = 'semua'; 
@@ -237,7 +272,7 @@
         let queryPencarian = '';
 
         // Deteksi Gesture Pull To Refresh (Tarik Layar)
-        let startY = 0;
+        letstartY = 0;
         let isTop = false;
 
         window.addEventListener('DOMContentLoaded', async () => {
@@ -251,6 +286,7 @@
             inisialisasiPWAInstall();
         });
 
+        // Tampilkan Kotak Bayangan Animasi Menggantikan Teks Lama "Memuat Data dari Google Sheet"
         function tampilkanSkeletonLoader() {
             const grid = document.getElementById('grid-produk');
             let itemSkeleton = '';
@@ -266,6 +302,7 @@
             grid.innerHTML = itemSkeleton;
         }
 
+        // Ambil Data Daftar_Toko
         async function muatDaftarToko() {
             try {
                 const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tshx=1&sheet=Daftar_Toko`;
@@ -276,7 +313,7 @@
                     id: b.c[0] ? b.c[0].v.toString().trim() : '',
                     nama: b.c[1] ? b.c[1].v : '',
                     wa: b.c[2] ? b.c[2].v.toString().trim() : '',
-                    minKirim: b.c[3] ? Number(b.c[3].v) || 0 : 0,
+                    minKirim: b.c[3] ? Number(b.c[3].v) : 0,
                     layananAntar: b.c[4] ? b.c[4].v : 'Tidak',
                     status: b.c[5] ? b.c[5].v : 'Tutup',
                     bypass: b.c[6] ? b.c[6].v : '',
@@ -285,16 +322,17 @@
                     jamBuka: b.c[9] ? b.c[9].v : '',
                     ongkir: b.c[10] ? b.c[10].v : '0', 
                     catatan: b.c[11] ? b.c[11].v : '',
-                    minFree: (b.c[12] && b.c[12].v !== null && b.c[12].v !== '') ? Number(b.c[12].v) : null,
-                    minPromo: (b.c[13] && b.c[13].v !== null && b.c[13].v !== '') ? Number(b.c[13].v) : null,
-                    ongkirPromo: (b.c[14] && b.c[14].v !== null && b.c[14].v !== '') ? Number(b.c[14].v) : null,
-                    antiPromo: b.c[15] ? b.c[15].v.toString().toLowerCase().trim() : '',
-                    ongkirKhusus: (b.c[16] && b.c[16].v !== null && b.c[16].v !== '') ? Number(b.c[16].v) : null
+                    minFree: b.c[12] ? Number(b.c[12].v) : null,
+                    minPromo: b.c[13] ? Number(b.c[13].v) : null,
+                    ongkirPromo: b.c[14] ? Number(b.c[14].v) : null,
+                    antiPromo: b.c[15] ? b.c[15].v.toString().toLowerCase() : '',
+                    ongkirKhusus: b.c[16] ? Number(b.c[16].v) : null
                 })).filter(t => t.id !== 'ID_Toko' && t.id !== '');
                 renderModalToko();
             } catch (err) { console.error("Gagal memuat Daftar_Toko:", err); }
         }
 
+        // Ambil Data Semua_Produk
         async function muatSemuaProduk() {
             try {
                 const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tshx=1&sheet=Semua_Produk`;
@@ -315,6 +353,7 @@
             } catch (err) { console.error("Gagal memuat Semua_Produk:", err); }
         }
 
+        // Ambil Data Toko Spesifik dengan Dukungan Animasi Skeleton Loader
         async function muatProdukSpesifikToko(idToko) {
             tampilkanSkeletonLoader();
             try {
@@ -338,7 +377,8 @@
                 document.getElementById('grid-produk').innerHTML = `<div class="col-span-full text-center py-12 text-red-500 text-sm">Gagal memuat produk toko. Silakan periksa kembali koneksi internet Anda.</div>`;
             }
         }
-           // Engine Hitung Ongkir Otomatis Berdasarkan Awalan ID Produk & Kolom AntiPromo
+
+        // Engine Hitung Ongkir Otomatis Berdasarkan Awalan ID Produk & Kolom AntiPromo
         function kalkulasiOngkirToko(infoToko, subtotalBelanja) {
             let hasil = { nominal: 0, status: 'Tidak Ada / Ambil Sendiri', pemicuAnti: '' };
             if (!infoToko) return hasil;
@@ -422,14 +462,36 @@
 
             return hasil;
         }
-                function renderProduk() {
+            }
+
+            if (infoToko.minFree !== null && subtotalBelanja >= infoToko.minFree) {
+                hasil.nominal = 0;
+                hasil.status = 'Gratis Ongkir (Promo Belanja)';
+                return hasil;
+            }
+
+            if (infoToko.minPromo !== null && infoToko.ongkirPromo !== null && subtotalBelanja >= infoToko.minPromo) {
+                hasil.nominal = infoToko.ongkirPromo;
+                hasil.status = 'Tarif Promo Murah';
+                return hasil;
+            }
+
+            hasil.status = ongkirDasar > 0 ? 'Tarif Standar Toko' : 'Gratis / Ambil Sendiri';
+            return hasil;
+        }
+
+        // Render Grid Etalase Utama & Sistem Wishlist Terintegrasi
+        function renderProduk() {
             const grid = document.getElementById('grid-produk');
+            
+            // Konfigurasi Sistem Pencarian Kata Kunci Longgar Fleksibel (Multi-Keyword Fuzzy)
             const kataKunci = queryPencarian.toLowerCase().trim().split(/\s+/).filter(k => k.length > 0);
 
             let produkFilter = databaseProduk.filter(p => {
                 let katSheet = p.kategori ? p.kategori.toLowerCase() : '';
                 let cocokKategori = false;
                 
+                // Filter Berdasarkan Pilihan Tab Menu Kategori
                 if (kategoriAktif === 'Semua') {
                     cocokKategori = true;
                 } else if (kategoriAktif === 'Favorit') {
@@ -448,6 +510,7 @@
                 if (!cocokKategori) return false;
                 if (kataKunci.length === 0) return true;
 
+                // Memeriksa kata kunci acak pada Judul Nama dan Deskripsi Produk Sekaligus
                 const gabunganTeksProduk = `${p.nama.toLowerCase()} ${p.deskripsi ? p.deskripsi.toLowerCase() : ''}`;
                 return kataKunci.some(kata => gabunganTeksProduk.includes(kata));
             });
@@ -487,12 +550,15 @@
             }).join('');
         }
 
+        // Pop-up Detail & Pengendali Deep Linking Terintegrasi
         function bukaModalDetail(idProduk) {
             const p = databaseProduk.find(prod => prod.idProduk === idProduk);
             if(!p) return;
             const infoToko = databaseToko.find(t => t.id === p.idToko);
             
-            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `#/produk/${idProduk}`;
+            // Deep Linking Engine: Merubah Alamat URL Browser Saat Detail Produk Dibuka
+            //  GANTI DENGAN BARIS INI:
+const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `#/produk/${idProduk}`;
             window.history.pushState({ path: newUrl }, '', newUrl);
 
             document.getElementById('modal-detail-toko').textContent = infoToko ? infoToko.nama : p.idToko;
@@ -513,6 +579,7 @@
                 placeholder.classList.remove('hidden'); 
             }
 
+            // Atur Event Tombol Wishlist di Dalam Modal Detail
             const btnWish = document.getElementById('btn-modal-wishlist');
             const pasangWishlistState = () => {
                 const isFav = wishlist.includes(p.idProduk);
@@ -541,30 +608,37 @@
             m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
             setTimeout(() => m.classList.add('hidden'), 300);
 
+            // Bersihkan Deep Link URL saat pop up di silang kembali ke utama
             const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             window.history.pushState({ path: cleanUrl }, '', cleanUrl);
         }
 
-        function prosesDeepLinkingURLLoad() {
-            const hash = window.location.hash;
-            if (hash.includes('#/toko/')) {
-                const idTokoLink = hash.split('#/toko/')[1];
-                if (idTokoLink) {
-                    setTimeout(() => {
-                        const cekToko = databaseToko.find(t => t.id === idTokoLink.trim());
-                        if (cekToko) pilihMitraToko(idTokoLink.trim());
-                    }, 1000);
-                }
-            } else if (hash.includes('#/produk/')) {
-                const idProdukLink = hash.split('#/produk/')[1];
-                if (idProdukLink) {
-                    setTimeout(() => {
-                        bukaModalDetail(idProdukLink.trim());
-                    }, 1200);
-                }
-            }
+        //  GANTI DENGAN KODE BARU INI:
+function prosesDeepLinkingURLLoad() {
+    const hash = window.location.hash;
+    
+    // 1. Membaca Link Pendek Toko (Contoh: #/toko/T001)
+    if (hash.includes('#/toko/')) {
+        const idTokoLink = hash.split('#/toko/')[1];
+        if (idTokoLink) {
+            setTimeout(() => {
+                const cekToko = databaseToko.find(t => t.id === idTokoLink.trim());
+                if (cekToko) pilihMitraToko(idTokoLink.trim());
+            }, 1000);
         }
+    } 
+    // 2. Membaca Link Pendek Produk (Contoh: #/produk/P001)
+    else if (hash.includes('#/produk/')) {
+        const idProdukLink = hash.split('#/produk/')[1];
+        if (idProdukLink) {
+            setTimeout(() => {
+                bukaModalDetail(idProdukLink.trim());
+            }, 1200);
+        }
+    }
+}
             
+        // Fitur Pull To Refresh Gestur Deteksi
         function inisialisasiPullToRefresh() {
             document.addEventListener('touchstart', (e) => {
                 if (window.scrollY === 0) {
@@ -583,6 +657,7 @@
                     const indicator = document.getElementById('ptr-indicator');
                     indicator.classList.add('visible');
                     
+                    // Eksekusi Ambil Ulang Data dari Google Sheet
                     tampilkanSkeletonLoader();
                     await muatDaftarToko();
                     await (tokoTerpilih ? muatProdukSpesifikToko(tokoTerpilih) : muatSemuaProduk());
@@ -594,6 +669,7 @@
             document.addEventListener('touchend', () => { isTop = false; });
         }
 
+        // Pengendali Manajerial Wishlist / Produk Terfavorit
         function toggleWishlist(idProduk) {
             const index = wishlist.indexOf(idProduk);
             if (index > -1) {
@@ -612,6 +688,7 @@
             }
         }
 
+        // Logika Tombol Instal Aplikasi PWA Langsung
         function inisialisasiPWAInstall() {
             let deferredPrompt;
             const btnInstall = document.getElementById('btn-pwa-install');
@@ -661,7 +738,9 @@
             if (keranjangIdToko && keranjangIdToko !== idToko) {
                 const infoTokoLama = databaseToko.find(t => t.id === keranjangIdToko);
                 const namaLama = infoTokoLama ? infoTokoLama.nama : keranjangIdToko;
-                let konfirmasi = confirm(`Keranjang Anda berisi produk dari [${namaLama}].\n\nHapus keranjang lama untuk mengganti dengan pesanan dari toko baru ini?`);
+                let konfirmasi = confirm(`Keranjang Anda berisi produk dari [${namaLama}].
+
+Hapus keranjang lama untuk mengganti dengan pesanan dari toko baru ini?`);
                 if (!konfirmasi) return;
                 keranjang = {};
             }
@@ -700,6 +779,7 @@
             else { badge.classList.add('hidden'); }
         }
 
+        // Render Isi Keranjang Beserta Label Status Ongkir
         function renderIsiKeranjang() {
             const container = document.getElementById('keranjang-items-list');
             const wrapperInfoToko = document.getElementById('info-toko-di-keranjang');
@@ -764,6 +844,7 @@
             document.getElementById('nota-total-harga').textContent = `Rp${totalAkhir.toLocaleString('id-ID')}`;
         }
 
+        // Format Pesanan Teks WhatsApp & Clipboard
         function buatTeksNota() {
             if(!keranjangIdToko) return "";
             const infoToko = databaseToko.find(t => t.id === keranjangIdToko);
@@ -836,6 +917,7 @@
             window.open(`https://wa.me/${nomorWA}?text=${teksNota}`, '_blank');
         }
 
+        // Penyimpanan Data Biodata di Memory HP Pembeli
         function simpanBiodataLokal() {
             localStorage.setItem('cust_nama', document.getElementById('cust-nama').value);
             localStorage.setItem('cust_telp', document.getElementById('cust-telp').value);
@@ -848,6 +930,7 @@
             if(localStorage.getItem('cust_alamat')) document.getElementById('cust-alamat').value = localStorage.getItem('cust_alamat');
         }
 
+        // Sistem Navigasi Mode Halaman Utama vs Toko Tunggal
         async function setMode(mode) {
             modeAktif = mode;
             const btnSemua = document.getElementById('btn-mode-semua');
@@ -861,9 +944,6 @@
                 btnToko.className = "px-4 py-2 text-xs font-semibold rounded-full bg-gray-200 text-gray-700 shadow-sm transition";
                 tampilkanSkeletonLoader();
                 await muatSemuaProduk();
-                
-                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-                window.history.pushState({ path: cleanUrl }, '', cleanUrl);
             } else {
                 if(!tokoTerpilih) { toggleModalToko(); setMode('semua'); }
             }
@@ -871,11 +951,7 @@
 
         async function pilihMitraToko(idToko) {
             tokoTerpilih = idToko;
-            
-            const modal = document.getElementById('modal-toko');
-            if (!modal.classList.contains('hidden')) {
-                toggleModalToko();
-            }
+            toggleModalToko();
             
             const btnSemua = document.getElementById('btn-mode-semua');
             const btnToko = document.getElementById('btn-mode-toko');
@@ -910,35 +986,49 @@
                 }
                 
                 const containerMaps = document.getElementById('container-tombol-maps');
-                let tombolMapsTeks = '';
-                if (infoToko.shareloc && infoToko.shareloc.trim() !== '') {
-                    let urlMap = infoToko.shareloc.trim();
-                    if (!urlMap.startsWith('http://') && !urlMap.startsWith('https://')) {
-                        urlMap = 'https://' + urlMap;
-                    }
-                    tombolMapsTeks = `
-                        <a href="${urlMap}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg border border-white/20 transition backdrop-blur-sm">
-                            <i class="fa-solid fa-map-location-dot text-amber-300"></i> Buka Lokasi Map
-                        </a>`;
-                }
 
-                let tombolBagikanTeks = `
-                    <button onclick="bagikanLinkTokoSaja()" class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg transition shadow-sm cursor-pointer border-none">
-                        <i class="fa-solid fa-share-nodes"></i> Bagikan Toko
-                    </button>`;
+// 1. Buat teks tombol Shareloc (jika ada datanya di Google Sheet)
+let tombolMapsTeks = '';
+if (infoToko.shareloc && infoToko.shareloc.trim() !== '') {
+    let urlMap = infoToko.shareloc.trim();
+    // Antisipasi jika Anda lupa menulis https:// di Google Sheet (Mencegah eror broken link)
+    if (!urlMap.startsWith('http://') && !urlMap.startsWith('https://')) {
+        urlMap = 'https://' + urlMap;
+    }
+    tombolMapsTeks = `
+        <a href="${urlMap}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg border border-white/20 transition backdrop-blur-sm">
+            <i class="fa-solid fa-map-location-dot text-amber-300"></i> Buka Lokasi Map
+        </a>`;
+}
 
-                containerMaps.innerHTML = `<div class="flex items-center gap-2">${tombolMapsTeks} ${tombolBagikanTeks}</div>`;               
+// 2. Buat teks tombol Bagikan Toko (Otomatis muncul untuk setiap toko)
+let tombolBagikanTeks = `
+    <button onclick="bagikanLinkTokoSaja()" class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg transition shadow-sm cursor-pointer border-none">
+        <i class="fa-solid fa-share-nodes"></i> Bagikan Toko
+    </button>`;
+
+// 3. Gabungkan kedua tombol ke dalam website
+containerMaps.innerHTML = `<div class="flex items-center gap-2">${tombolMapsTeks} ${tombolBagikanTeks}</div>`;
+// 2. Buat teks tombol Bagikan Toko (selalu muncul otomatis untuk setiap toko)
+let tombolBagikanTeks = `
+    <button onclick="bagikanLinkTokoSaja()" class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg transition shadow-sm cursor-pointer">
+        <i class="fa-solid fa-share-nodes"></i> Bagikan Toko
+    </button>`;
+
+// 3. Gabungkan kedua tombol tersebut ke dalam container website
+containerMaps.innerHTML = `<div class="flex items-center gap-2">${tombolMapsTeks} ${tombolBagikanTeks}</div>`;                
                 banner.classList.remove('hidden');
             }
 
-            modeAktif = 'toko';
-            
-            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `#/toko/${idToko}`;
-            window.history.pushState({ path: newUrl }, '', newUrl);
+            //  UBAH MENJADI SEPERTI INI:
+    modeAktif = 'toko';
+    
+    // Baris baru agar URL otomatis berubah jadi pendek saat toko diklik:
+    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `#/toko/${idToko}`;
+    window.history.pushState({ path: newUrl }, '', newUrl);
 
-            await muatProdukSpesifikToko(idToko);
-        }
-
+    await muatProdukSpesifikToko(idToko);
+}
         function renderModalToko() {
             const container = document.getElementById('daftar-toko-list');
             container.innerHTML = databaseToko.map(t => `
@@ -994,16 +1084,17 @@
                 setTimeout(() => modal.classList.add('hidden'), 300);
             }
         }
+     // FUNGSI UNTUK MENYALIN LINK TOKO OTOMATIS SAAT TOMBOL DIKLIK
+function bagikanLinkTokoSaja() {
+    const linkToko = window.location.href;
 
-        function bagikanLinkTokoSaja() {
-            const linkToko = window.location.href;
-            navigator.clipboard.writeText(linkToko).then(() => {
-                alert("🔗 Link toko berhasil disalin! Silakan tempel (paste) dan bagikan ke WhatsApp pelanggan.");
-            }).catch(err => {
-                console.error("Gagal menyalin link: ", err);
-                alert("Gagal menyalin otomatis. Silakan salin langsung dari address bar browser Anda.");
-            });
-        }
+    navigator.clipboard.writeText(linkToko).then(() => {
+        alert("🔗 Link toko berhasil disalin! Silakan tempel (paste) dan bagikan ke WhatsApp pelanggan.");
+    }).catch(err => {
+        console.error("Gagal menyalin link: ", err);
+        alert("Gagal menyalin otomatis. Silakan salin langsung dari address bar browser Anda.");
+    });
+}
     </script>
 </body>
 </html>
