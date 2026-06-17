@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <!--  KODE PENGGANTINYA -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grosir Bersama - Mega Katalog</title>
+<!-- Jalur penghubung ke file manifest agar bisa diinstal di layar HP -->
+<link rel="manifest" href="manifest.json">
+<!-- Mendukung PWA (Progressive Web App) -->
+<meta name="theme-color" content="#16a34a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Grosir Bersama">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .category-btn.active {
+            background-color: #16a34a !important;
+            color: white !important;
+        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Gaya Visual Khusus untuk Pull To Refresh */
+        #ptr-indicator {
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        #ptr-indicator.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 relative min-h-screen pb-12">
+
+    <div id="ptr-indicator" class="fixed top-16 left-0 right-0 z-50 flex justify-center pointer-events-none">
+        <div class="bg-white px-4 py-2 rounded-full shadow-lg border border-gray-100 flex items-center gap-2 text-xs font-semibold text-green-600">
+            <i class="fa-solid fa-arrows-rotate animate-spin"></i>
+            <span>Memperbarui data...</span>
+        </div>
+    </div>
+
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-gray-800 flex items-center gap-2 cursor-pointer" onclick="setMode('semua')">
+                <i class="fa-solid fa-store text-green-600"></i> <span>Grosir Bersama</span>
+            </h1>
+            <div class="flex items-center gap-1">
+                <button id="btn-pwa-install" class="hidden text-[11px] bg-green-100 text-green-700 font-bold px-2.5 py-1.5 rounded-lg mr-1 flex items-center gap-1">
+                    <i class="fa-solid fa-download"></i> Instal Aplikasi
+                </button>
+                <button onclick="bukaKeranjang()" class="relative p-2 text-gray-600 hover:text-green-600 transition">
+                    <i class="fa-solid fa-basket-shopping text-2xl"></i>
+                    <span id="badge-keranjang" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-6">
+        <div class="mb-6">
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400"></i>
+                <input type="text" id="search-input" oninput="filterProduk()" placeholder="Cari produk terlaris lintas toko..." class="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:border-green-500 text-sm">
+            </div>
+        </div>
+
+        <div class="flex gap-2 mb-6">
+            <button id="btn-mode-semua" onclick="setMode('semua')" class="px-4 py-2 text-xs font-semibold rounded-full bg-green-600 text-white shadow-sm transition">Semua Toko</button>
+            <button id="btn-mode-toko" onclick="setMode('toko')" class="px-4 py-2 text-xs font-semibold rounded-full bg-gray-200 text-gray-700 shadow-sm transition">Toko Ini</button>
+        </div>
+
+        <div class="flex gap-2 overflow-x-auto pb-3 mb-6 scrollbar-hide" id="container-kategori">
+            <button onclick="filterKategori('Semua')" class="category-btn active shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                🏠 Semua
+            </button>
+            <button onclick="filterKategori('Favorit')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2 text-red-500">
+                ❤️ Favorit Saya
+            </button>
+            <button onclick="filterKategori('Makanan & Minuman')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                🍲 Makanan & Minuman
+            </button>
+            <button onclick="filterKategori('Sembako')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                🍚 Sembako & Kebutuhan Harian
+            </button>
+            <button onclick="filterKategori('Fashion')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                👕 Fashion
+            </button>
+            <button onclick="filterKategori('Rumah Tangga')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                🧹 Rumah Tangga
+            </button>
+            <button onclick="filterKategori('Elektronik')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                ⚡ Elektronik
+            </button>
+            <button onclick="filterKategori('Kesehatan')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                💊 Kesehatan & Kecantikan
+            </button>
+            <button onclick="filterKategori('Jasa')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                🛠️ Jasa
+            </button>
+            <button onclick="filterKategori('Perlengkapan')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                📦 Perlengkapan Usaha & Kemasan
+            </button>
+            <button onclick="filterKategori('Pendidikan')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                📚 Pendidikan
+            </button>
+            <button onclick="filterKategori('Otomotif')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                🚗 Otomotif
+            </button>
+            <button id="btn-pilih-toko" onclick="toggleModalToko()" class="shrink-0 px-4 py-2 bg-amber-500 text-white text-xs font-semibold rounded-xl shadow-sm flex items-center gap-2">
+                🏪 Pilih Toko 📇
+            </button>
+        </div>
+
+        <div id="banner-toko-aktif" class="mb-6 bg-gradient-to-r from-green-700 to-emerald-600 rounded-2xl p-5 text-white shadow-sm hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="space-y-1 w-full">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">Mitra Toko Terpilih</span>
+                        <span id="badge-status-toko" class="text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider">Buka</span>
+                    </div>
+                    <h2 id="nama-toko-header" class="text-xl font-bold">Nama Toko</h2>
+                    <p id="detail-toko-header" class="text-xs text-green-100"><i class="fa-solid fa-clock"></i> Jam Buka | <i class="fa-solid fa-location-dot"></i> Alamat</p>
+                    
+                    <div class="grid grid-cols-2 gap-2 pt-2 text-[11px] text-green-50 max-w-md border-t border-white/10 mt-2">
+                        <div><i class="fa-solid fa-truck-drop-off text-amber-300"></i> Layanan Antar: <span id="info-layanan-antar" class="font-bold">-</span></div>
+                        <div><i class="fa-solid fa-hand-holding-dollar text-amber-300"></i> Ket. Ongkir: <span id="info-ongkir" class="font-bold">-</span></div>
+                        <div class="col-span-2"><i class="fa-solid fa-circle-minus text-amber-300"></i> Syarat Min. Kirim: <span id="info-min-kirim" class="font-bold">-</span></div>
+                    </div>
+
+                    <div id="wrapper-catatan-toko" class="mt-2 text-[11px] bg-black/10 p-2 rounded-lg text-emerald-100 hidden">
+                        <i class="fa-solid fa-bullhorn text-amber-300"></i> <span id="info-catatan-toko">-</span>
+                    </div>
+
+                    <div id="container-tombol-maps" class="mt-2"></div>
+                </div>
+                <button onclick="setMode('semua')" class="text-xs bg-white text-green-700 font-bold px-3 py-1.5 rounded-lg shadow-sm hover:bg-green-50 self-start md:self-auto shrink-0">Kembali ke Pusat</button>
+            </div>
+        </div>
+
+        <div id="grid-produk" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+    </main>
+
+    <footer class="text-center py-8 text-xs text-gray-400 mt-12 border-t border-gray-200">
+        <p>&copy; 2026 Grosir Bersama Platform Agregator Lokal.</p>
+    </footer>
+
+    <div id="modal-detail" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-xl transform scale-95 transition-transform duration-300">
+            <div class="relative h-64 bg-gray-100 flex items-center justify-center">
+                <img id="modal-detail-img" src="" class="w-full h-full object-cover hidden">
+                <div id="modal-detail-placeholder" class="text-gray-300 text-5xl"><i class="fa-solid fa-image"></i></div>
+                <button onclick="tutupModalDetail()" class="absolute top-3 right-3 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold z-10">&times;</button>
+            </div>
+            <div class="p-5">
+                <div class="flex justify-between items-start gap-2">
+                    <span id="modal-detail-toko" class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded font-bold">Nama Toko</span>
+                    <button id="btn-modal-wishlist" class="text-gray-400 text-lg hover:text-red-500 transition"><i class="fa-regular fa-heart"></i></button>
+                </div>
+                <h3 id="modal-detail-nama" class="font-bold text-gray-900 text-lg mt-2">Nama Produk</h3>
+                <div id="modal-detail-harga" class="text-green-600 font-black text-xl mt-1">Rp0</div>
+                <hr class="my-3 border-gray-100">
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Deskripsi Produk</h4>
+                <p id="modal-detail-deskripsi" class="text-sm text-gray-600 mt-1 max-h-32 overflow-y-auto pr-1">Isi deskripsi panjang produk disini...</p>
+                <div class="mt-5 flex gap-2" id="modal-detail-action-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-toko" class="fixed inset-0 bg-black/50 z-50 flex items-end justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-md rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto transform translate-y-full transition-transform duration-300">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-gray-800">Pilih Mitra Toko</h3>
+                <button onclick="toggleModalToko()" class="text-gray-400 text-xl">&times;</button>
+            </div>
+            <div id="daftar-toko-list" class="space-y-3"></div>
+        </div>
+    </div>
+
+    <div id="modal-keranjang" class="fixed inset-0 bg-black/50 z-50 flex items-end justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-md rounded-t-2xl p-5 max-h-[90vh] overflow-y-auto transform translate-y-full transition-transform duration-300">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                <h3 class="font-bold text-gray-900 text-base flex items-center gap-2"><i class="fa-solid fa-basket-shopping text-green-600"></i> Keranjang Nota Belanja</h3>
+                <button onclick="bukaKeranjang()" class="text-gray-400 text-2xl">&times;</button>
+            </div>
+
+            <div class="bg-gray-50 rounded-xl p-3 mb-4 border border-gray-200 space-y-2.5">
+                <div class="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1"><i class="fa-solid fa-user-pen"></i> Data Pengiriman Pelanggan</div>
+                <input type="text" id="cust-nama" oninput="simpanBiodataLokal()" placeholder="Nama Lengkap Anda..." class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-green-500">
+                <input type="tel" id="cust-telp" oninput="simpanBiodataLokal()" placeholder="Nomor WhatsApp (Contoh: 08123...)" class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-green-500">
+                <textarea id="cust-alamat" oninput="simpanBiodataLokal()" rows="2" placeholder="Alamat Pengiriman Lengkap..." class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-green-500"></textarea>
+            </div>
+
+            <div id="info-toko-di-keranjang" class="text-[11px] bg-amber-50 text-amber-800 border border-amber-200 p-2.5 rounded-xl mb-3 hidden"></div>
+
+            <div id="keranjang-items-list" class="space-y-2 mb-4 max-h-42 overflow-y-auto"></div>
+
+            <div class="border-t border-gray-100 pt-3 space-y-1.5 text-xs text-gray-600 mb-4">
+                <div class="flex justify-between"><span>Total Item Barang:</span><span id="nota-total-qty" class="font-bold text-gray-900">0</span></div>
+                <div class="flex justify-between"><span>Subtotal Belanja:</span><span id="nota-subtotal-harga" class="font-bold text-gray-900">Rp0</span></div>
+                <div class="flex justify-between">
+                    <span>Ongkos Kirim Toko:</span>
+                    <div class="text-right">
+                        <span id="nota-ongkir-harga" class="font-bold text-gray-900">Rp0</span>
+                        <div id="badge-status-ongkir" class="text-[9px] text-amber-600 font-medium block"></div>
+                    </div>
+                </div>
+                <div class="flex justify-between text-sm text-gray-900 font-black border-t border-dashed border-gray-200 pt-2 text-base"><span>Total Pembayaran:</span><span id="nota-total-harga" class="text-green-600">Rp0</span></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="salinNotaTeks()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 border border-gray-200">
+                    <i class="fa-solid fa-copy"></i> Salin Nota Teks
+                </button>
+                <button onclick="kirimWhatsApp()" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-md">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> Kirim ke WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SPREADSHEET_ID = '1X_WTBIHE13HTPzOKn8MvXEOFAZ3fIb-Asdk2vC0OGto';
+        
+        let databaseToko = [];
+        let databaseProduk = [];
+        let keranjang = {}; 
+        let wishlist = []; // Menyimpan array idProduk yang difavoritkan
+        let keranjangIdToko = null; 
+
+        let modeAktif = 'semua'; 
+        let tokoTerpilih = null;  
+        let kategoriAktif = 'Semua';
+        let queryPencarian = '';
+
+        // Deteksi Gesture Pull To Refresh (Tarik Layar)
+        letstartY = 0;
+        let isTop = false;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            muatBiodataLokal();
+            muatWishlistLokal();
+            tampilkanSkeletonLoader();
+            await muatDaftarToko();
+            await muatSemuaProduk();
+            prosesDeepLinkingURLLoad();
+            inisialisasiPullToRefresh();
+            inisialisasiPWAInstall();
+        });
+
+        // Tampilkan Kotak Bayangan Animasi Menggantikan Teks Lama "Memuat Data dari Google Sheet"
+        function tampilkanSkeletonLoader() {
+            const grid = document.getElementById('grid-produk');
+            let itemSkeleton = '';
+            for (let i = 0; i < 4; i++) {
+                itemSkeleton += `
+                <div class="animate-pulse bg-white rounded-2xl p-3 border border-gray-100 flex flex-col gap-3 ${i === 3 ? 'hidden md:flex' : ''}">
+                    <div class="w-full h-32 bg-gray-200 rounded-xl"></div>
+                    <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+                    <div class="h-8 bg-gray-200 rounded-xl mt-2"></div>
+                </div>`;
+            }
+            grid.innerHTML = itemSkeleton;
+        }
+
+        // Ambil Data Daftar_Toko
+        async function muatDaftarToko() {
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tshx=1&sheet=Daftar_Toko`;
+                const respon = await fetch(url);
+                const teks = await respon.text();
+                const json = JSON.parse(teks.substr(47).slice(0, -2));
+                databaseToko = json.table.rows.map(b => ({
+                    id: b.c[0] ? b.c[0].v.toString().trim() : '',
+                    nama: b.c[1] ? b.c[1].v : '',
+                    wa: b.c[2] ? b.c[2].v.toString().trim() : '',
+                    minKirim: b.c[3] ? Number(b.c[3].v) : 0,
+                    layananAntar: b.c[4] ? b.c[4].v : 'Tidak',
+                    status: b.c[5] ? b.c[5].v : 'Tutup',
+                    bypass: b.c[6] ? b.c[6].v : '',
+                    alamat: b.c[7] ? b.c[7].v : '',
+                    shareloc: b.c[8] ? b.c[8].v ? b.c[8].v.toString().trim() : '' : '', 
+                    jamBuka: b.c[9] ? b.c[9].v : '',
+                    ongkir: b.c[10] ? b.c[10].v : '0', 
+                    catatan: b.c[11] ? b.c[11].v : '',
+                    minFree: b.c[12] ? Number(b.c[12].v) : null,
+                    minPromo: b.c[13] ? Number(b.c[13].v) : null,
+                    ongkirPromo: b.c[14] ? Number(b.c[14].v) : null,
+                    antiPromo: b.c[15] ? b.c[15].v.toString().toLowerCase() : '',
+                    ongkirKhusus: b.c[16] ? Number(b.c[16].v) : null
+                })).filter(t => t.id !== 'ID_Toko' && t.id !== '');
+                renderModalToko();
+            } catch (err) { console.error("Gagal memuat Daftar_Toko:", err); }
+        }
+
+        // Ambil Data Semua_Produk
+        async function muatSemuaProduk() {
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tshx=1&sheet=Semua_Produk`;
+                const respon = await fetch(url);
+                const teks = await respon.text();
+                const json = JSON.parse(teks.substr(47).slice(0, -2));
+                databaseProduk = json.table.rows.map(b => ({
+                    idToko: b.c[0] ? b.c[0].v.toString().trim() : '',
+                    idProduk: b.c[1] ? b.c[1].v.toString().trim() : '',
+                    nama: b.c[2] ? b.c[2].v : '',
+                    kategori: b.c[3] ? b.c[3].v : '',
+                    harga: b.c[4] ? Number(b.c[4].v) : 0,
+                    satuan: b.c[5] ? b.c[5].v : 'pcs',
+                    gambar: b.c[6] ? b.c[6].v : '',
+                    deskripsi: b.c[7] ? b.c[7].v : ''
+                })).filter(p => p.idToko !== 'ID_Toko' && p.idToko !== '');
+                renderProduk();
+            } catch (err) { console.error("Gagal memuat Semua_Produk:", err); }
+        }
+
+        // Ambil Data Toko Spesifik dengan Dukungan Animasi Skeleton Loader
+        async function muatProdukSpesifikToko(idToko) {
+            tampilkanSkeletonLoader();
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tshx=1&sheet=${idToko}`;
+                const respon = await fetch(url);
+                const teks = await respon.text();
+                const json = JSON.parse(teks.substr(47).slice(0, -2));
+                databaseProduk = json.table.rows.map(b => ({
+                    idToko: idToko,
+                    idProduk: b.c[1] ? b.c[1].v.toString().trim() : '',
+                    nama: b.c[2] ? b.c[2].v : '',
+                    kategori: b.c[3] ? b.c[3].v : '',
+                    harga: b.c[4] ? Number(b.c[4].v) : 0,
+                    satuan: b.c[5] ? b.c[5].v : 'pcs',
+                    gambar: b.c[6] ? b.c[6].v : '',
+                    deskripsi: b.c[7] ? b.c[7].v : ''
+                })).filter(p => p.idProduk !== 'ID_Produk' && p.idProduk !== '');
+                renderProduk();
+            } catch (err) { 
+                console.error(`Gagal memuat sheet toko [${idToko}]:`, err); 
+                document.getElementById('grid-produk').innerHTML = `<div class="col-span-full text-center py-12 text-red-500 text-sm">Gagal memuat produk toko. Silakan periksa kembali koneksi internet Anda.</div>`;
+            }
+        }
+
+        // Engine Hitung Ongkir Dinamis Berdasarkan Aturan Baru M-Q
+        function kalkulasiOngkirToko(infoToko, subtotalBelanja) {
+            let hasil = { nominal: 0, status: 'Flat / Tidak Ada', pemicuAnti: '' };
+            if (!infoToko) return hasil;
+
+            let ongkirDasar = Number(infoToko.ongkir.toString().replace(/[^0-9]/g, '')) || 0;
+            hasil.nominal = ongkirDasar;
+
+            if (infoToko.antiPromo && infoToko.ongkirKhusus !== null) {
+                let kataKunciArray = infoToko.antiPromo.split(',').map(k => k.trim()).filter(k => k !== '');
+                let ditemukanAnti = false;
+                let kataPemicu = '';
+
+                for (let idProd in keranjang) {
+                    let prod = databaseProduk.find(p => p.idProduk === idProd);
+                    if (prod && prod.nama) {
+                        let namaProdLower = prod.nama.toLowerCase();
+                        for (let kunci of kataKunciArray) {
+                            if (namaProdLower.includes(kunci)) {
+                                ditemukanAnti = true;
+                                kataPemicu = kunci;
+                                break;
+                            }
+                        }
+                    }
+                    if (ditemukanAnti) break;
+                }
+
+                if (ditemukanAnti) {
+                    hasil.nominal = infoToko.ongkirKhusus;
+                    hasil.status = `Khusus (Ada barang berat: ${kataPemicu})`;
+                    return hasil;
+                }
+            }
+
+            if (infoToko.minFree !== null && subtotalBelanja >= infoToko.minFree) {
+                hasil.nominal = 0;
+                hasil.status = 'Gratis Ongkir (Promo Belanja)';
+                return hasil;
+            }
+
+            if (infoToko.minPromo !== null && infoToko.ongkirPromo !== null && subtotalBelanja >= infoToko.minPromo) {
+                hasil.nominal = infoToko.ongkirPromo;
+                hasil.status = 'Tarif Promo Murah';
+                return hasil;
+            }
+
+            hasil.status = ongkirDasar > 0 ? 'Tarif Standar Toko' : 'Gratis / Ambil Sendiri';
+            return hasil;
+        }
+
+        // Render Grid Etalase Utama & Sistem Wishlist Terintegrasi
+        function renderProduk() {
+            const grid = document.getElementById('grid-produk');
+            
+            // Konfigurasi Sistem Pencarian Kata Kunci Longgar Fleksibel (Multi-Keyword Fuzzy)
+            const kataKunci = queryPencarian.toLowerCase().trim().split(/\s+/).filter(k => k.length > 0);
+
+            let produkFilter = databaseProduk.filter(p => {
+                let katSheet = p.kategori ? p.kategori.toLowerCase() : '';
+                let cocokKategori = false;
+                
+                // Filter Berdasarkan Pilihan Tab Menu Kategori
+                if (kategoriAktif === 'Semua') {
+                    cocokKategori = true;
+                } else if (kategoriAktif === 'Favorit') {
+                    cocokKategori = wishlist.includes(p.idProduk);
+                } else if (kategoriAktif === 'Makanan & Minuman' && katSheet.includes('makanan')) cocokKategori = true;
+                else if (kategoriAktif === 'Sembako' && katSheet.includes('sembako')) cocokKategori = true;
+                else if (kategoriAktif === 'Fashion' && katSheet.includes('fashion')) cocokKategori = true;
+                else if (kategoriAktif === 'Rumah Tangga' && katSheet.includes('rumah')) cocokKategori = true;
+                else if (kategoriAktif === 'Elektronik' && katSheet.includes('elektronik')) cocokKategori = true;
+                else if (kategoriAktif === 'Kesehatan' && (katSheet.includes('kesehatan') || katSheet.includes('kecantikan'))) cocokKategori = true;
+                else if (kategoriAktif === 'Jasa' && katSheet.includes('jasa')) cocokKategori = true;
+                else if (kategoriAktif === 'Perlengkapan' && (katSheet.includes('perlengkapan') || katSheet.includes('kemasan'))) cocokKategori = true;
+                else if (kategoriAktif === 'Pendidikan' && katSheet.includes('pendidikan')) cocokKategori = true;
+                else if (kategoriAktif === 'Otomotif' && katSheet.includes('otomotif')) cocokKategori = true;
+                
+                if (!cocokKategori) return false;
+                if (kataKunci.length === 0) return true;
+
+                // Memeriksa kata kunci acak pada Judul Nama dan Deskripsi Produk Sekaligus
+                const gabunganTeksProduk = `${p.nama.toLowerCase()} ${p.deskripsi ? p.deskripsi.toLowerCase() : ''}`;
+                return kataKunci.some(kata => gabunganTeksProduk.includes(kata));
+            });
+
+            if (produkFilter.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400 text-sm"><i class="fa-solid fa-folder-open text-3xl block mb-2 opacity-50"></i> Produk tidak ditemukan.</div>`;
+                return;
+            }
+
+            grid.innerHTML = produkFilter.map(p => {
+                const infoToko = databaseToko.find(t => t.id === p.idToko);
+                const namaTokoPajangan = infoToko ? infoToko.nama : p.idToko;
+                const isFavorit = wishlist.includes(p.idProduk);
+
+                return `
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between p-3 relative hover:shadow-md transition">
+                    <button onclick="toggleWishlist('${p.idProduk}'); event.stopPropagation();" class="absolute top-5 right-5 z-10 bg-white/80 backdrop-blur-sm w-7 h-7 rounded-full flex items-center justify-center text-xs shadow-sm transition ${isFavorit ? 'text-red-500' : 'text-gray-400 hover:text-red-400'}">
+                        <i class="${isFavorit ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                    </button>
+
+                    <div onclick="bukaModalDetail('${p.idProduk}')" class="cursor-pointer">
+                        <div class="w-full h-32 bg-gray-50 rounded-xl mb-3 flex items-center justify-center text-gray-300 relative overflow-hidden">
+                            ${p.gambar ? `<img src="${p.gambar}" class="w-full h-full object-cover" loading="lazy">` : `<i class="fa-solid fa-image text-3xl"></i>`}
+                            <span class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md font-medium max-w-[80%] truncate">${namaTokoPajangan}</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800 text-sm line-clamp-2 mb-1">${p.nama}</h4>
+                        <p class="text-[11px] text-gray-400 mb-2 line-clamp-2">${p.deskripsi || 'Klik untuk lihat detail deskripsi...'}</p>
+                    </div>
+                    <div>
+                        <div class="text-green-600 font-extrabold text-sm mb-2">Rp${p.harga.toLocaleString('id-ID')}<span class="text-gray-400 font-normal text-xs"> / ${p.satuan}</span></div>
+                        <button onclick="tambahKeKeranjang('${p.idProduk}', '${p.idToko}')" class="w-full py-2 bg-gray-900 hover:bg-green-600 text-white font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Tambah Belanja
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // Pop-up Detail & Pengendali Deep Linking Terintegrasi
+        function bukaModalDetail(idProduk) {
+            const p = databaseProduk.find(prod => prod.idProduk === idProduk);
+            if(!p) return;
+            const infoToko = databaseToko.find(t => t.id === p.idToko);
+            
+            // Deep Linking Engine: Merubah Alamat URL Browser Saat Detail Produk Dibuka
+            //  GANTI DENGAN BARIS INI:
+const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `#/produk/${idProduk}`;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+
+            document.getElementById('modal-detail-toko').textContent = infoToko ? infoToko.nama : p.idToko;
+            document.getElementById('modal-detail-nama').textContent = p.nama;
+            document.getElementById('modal-detail-harga').textContent = `Rp${p.harga.toLocaleString('id-ID')} / ${p.satuan}`;
+            document.getElementById('modal-detail-deskripsi').textContent = p.deskripsi || 'Tidak ada deskripsi produk secara spesifik.';
+            
+            const img = document.getElementById('modal-detail-img');
+            const placeholder = document.getElementById('modal-detail-placeholder');
+            img.loading = 'lazy';
+            
+            if(p.gambar) { 
+                img.src = p.gambar; 
+                img.classList.remove('hidden'); 
+                placeholder.classList.add('hidden'); 
+            } else { 
+                img.classList.add('hidden'); 
+                placeholder.classList.remove('hidden'); 
+            }
+
+            // Atur Event Tombol Wishlist di Dalam Modal Detail
+            const btnWish = document.getElementById('btn-modal-wishlist');
+            const pasangWishlistState = () => {
+                const isFav = wishlist.includes(p.idProduk);
+                btnWish.innerHTML = `<i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-heart"></i>`;
+                btnWish.className = `text-lg transition ${isFav ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`;
+            };
+            pasangWishlistState();
+            btnWish.onclick = () => { toggleWishlist(p.idProduk); pasangWishlistState(); };
+
+            document.getElementById('modal-detail-action-container').innerHTML = `
+                <button onclick="pilihMitraToko('${p.idToko}')" class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition text-center flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-door-open"></i> Masuk Toko
+                </button>
+                <button onclick="tambahKeKeranjang('${p.idProduk}', '${p.idToko}'); tutupModalDetail();" class="flex-1 py-2.5 bg-gray-900 hover:bg-green-600 text-white font-bold text-xs rounded-xl transition">
+                    + Tambah Item
+                </button>
+            `;
+
+            const m = document.getElementById('modal-detail');
+            m.classList.remove('hidden');
+            setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 50);
+        }
+
+        function tutupModalDetail() {
+            const m = document.getElementById('modal-detail');
+            m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
+            setTimeout(() => m.classList.add('hidden'), 300);
+
+            // Bersihkan Deep Link URL saat pop up di silang kembali ke utama
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.pushState({ path: cleanUrl }, '', cleanUrl);
+        }
+
+        //  GANTI DENGAN KODE BARU INI:
+function prosesDeepLinkingURLLoad() {
+    const hash = window.location.hash;
+    
+    // 1. Membaca Link Pendek Toko (Contoh: #/toko/T001)
+    if (hash.includes('#/toko/')) {
+        const idTokoLink = hash.split('#/toko/')[1];
+        if (idTokoLink) {
+            setTimeout(() => {
+                const cekToko = databaseToko.find(t => t.id === idTokoLink.trim());
+                if (cekToko) pilihMitraToko(idTokoLink.trim());
+            }, 1000);
+        }
+    } 
+    // 2. Membaca Link Pendek Produk (Contoh: #/produk/P001)
+    else if (hash.includes('#/produk/')) {
+        const idProdukLink = hash.split('#/produk/')[1];
+        if (idProdukLink) {
+            setTimeout(() => {
+                bukaModalDetail(idProdukLink.trim());
+            }, 1200);
+        }
+    }
+}
+            
+        // Fitur Pull To Refresh Gestur Deteksi
+        function inisialisasiPullToRefresh() {
+            document.addEventListener('touchstart', (e) => {
+                if (window.scrollY === 0) {
+                    startY = e.touches[0].clientY;
+                    isTop = true;
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchmove', async (e) => {
+                if (!isTop) return;
+                const currentY = e.touches[0].clientY;
+                const jarakTarik = currentY - startY;
+
+                if (jarakTarik > 120 && isTop) {
+                    isTop = false; 
+                    const indicator = document.getElementById('ptr-indicator');
+                    indicator.classList.add('visible');
+                    
+                    // Eksekusi Ambil Ulang Data dari Google Sheet
+                    tampilkanSkeletonLoader();
+                    await muatDaftarToko();
+                    await (tokoTerpilih ? muatProdukSpesifikToko(tokoTerpilih) : muatSemuaProduk());
+                    
+                    setTimeout(() => { indicator.classList.remove('visible'); }, 600);
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchend', () => { isTop = false; });
+        }
+
+        // Pengendali Manajerial Wishlist / Produk Terfavorit
+        function toggleWishlist(idProduk) {
+            const index = wishlist.indexOf(idProduk);
+            if (index > -1) {
+                wishlist.splice(index, 1);
+            } else {
+                wishlist.push(idProduk);
+            }
+            localStorage.setItem('gb_wishlist', JSON.stringify(wishlist));
+            renderProduk();
+        }
+
+        function muatWishlistLokal() {
+            const localData = localStorage.getItem('gb_wishlist');
+            if (localData) {
+                wishlist = JSON.parse(localData);
+            }
+        }
+
+        // Logika Tombol Instal Aplikasi PWA Langsung
+        function inisialisasiPWAInstall() {
+            let deferredPrompt;
+            const btnInstall = document.getElementById('btn-pwa-install');
+            
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                btnInstall.classList.remove('hidden');
+            });
+
+            btnInstall.addEventListener('click', async () => {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    btnInstall.classList.add('hidden');
+                }
+                deferredPrompt = null;
+            });
+
+            window.addEventListener('appinstalled', () => {
+                btnInstall.classList.add('hidden');
+                deferredPrompt = null;
+            });
+        }
+
+        // Manajemen Keranjang Belanja
+        function tambahKeKeranjang(idProduk, idToko) {
+            if (keranjangIdToko && keranjangIdToko !== idToko) {
+                const infoTokoLama = databaseToko.find(t => t.id === keranjangIdToko);
+                const namaLama = infoTokoLama ? infoTokoLama.nama : keranjangIdToko;
+                let konfirmasi = confirm(`Keranjang Anda berisi produk dari [${namaLama}].\n\nHapus keranjang lama untuk mengganti dengan pesanan dari toko baru ini?`);
+                if (!konfirmasi) return;
+                keranjang = {};
+            }
+            keranjangIdToko = idToko;
+            keranjang[idProduk] = (keranjang[idProduk] || 0) + 1;
+            updateBadgeKeranjang();
+        }
+
+        function aturQtyItem(idProduk, jumlah) {
+            if (!keranjang[idProduk]) return;
+            keranjang[idProduk] += jumlah;
+            if (keranjang[idProduk] <= 0) delete keranjang[idProduk];
+            if (Object.keys(keranjang).length === 0) keranjangIdToko = null;
+            updateBadgeKeranjang();
+            renderIsiKeranjang();
+        }
+
+        function updateBadgeKeranjang() {
+            const total = Object.values(keranjang).reduce((a, b) => a + b, 0);
+            const badge = document.getElementById('badge-keranjang');
+            if(total > 0) { badge.textContent = total; badge.classList.remove('hidden'); }
+            else { badge.classList.add('hidden'); }
+        }
+
+        // Render Isi Keranjang Beserta Label Status Ongkir
+        function renderIsiKeranjang() {
+            const container = document.getElementById('keranjang-items-list');
+            const wrapperInfoToko = document.getElementById('info-toko-di-keranjang');
+            let totalQty = 0;
+            let subtotalHarga = 0;
+
+            if (Object.keys(keranjang).length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-gray-400 text-xs">Belum ada barang di keranjang nota belanja.</div>`;
+                document.getElementById('nota-total-qty').textContent = "0";
+                document.getElementById('nota-subtotal-harga').textContent = "Rp0";
+                document.getElementById('nota-ongkir-harga').textContent = "Rp0";
+                document.getElementById('badge-status-ongkir').textContent = "";
+                document.getElementById('nota-total-harga').textContent = "Rp0";
+                wrapperInfoToko.classList.add('hidden');
+                return;
+            }
+
+            const infoToko = databaseToko.find(t => t.id === keranjangIdToko);
+            if (infoToko) {
+                wrapperInfoToko.innerHTML = `
+                    <p class="font-bold mb-1"><i class="fa-solid fa-store"></i> Ket. Pengiriman [${infoToko.nama}]:</p>
+                    <ul class="list-disc pl-4 space-y-0.5">
+                        <li>Layanan Antar: <b>${infoToko.layananAntar}</b></li>
+                        <li>Aturan Ongkir: <b>${infoToko.ongkir}</b></li>
+                        <li>Min. Belanja Diantar: <b>${infoToko.minKirim > 0 ? 'Rp' + infoToko.minKirim.toLocaleString('id-ID') : 'Tidak Ada'}</b></li>
+                    </ul>`;
+                wrapperInfoToko.classList.remove('hidden');
+            }
+
+            container.innerHTML = Object.keys(keranjang).map(id => {
+                const p = databaseProduk.find(prod => prod.idProduk === id);
+                if (!p) return '';
+                const sub = p.harga * keranjang[id];
+                totalQty += keranjang[id];
+                subtotalHarga += sub;
+
+                return `
+                <div class="flex justify-between items-center bg-gray-50 border border-gray-100 p-2.5 rounded-xl">
+                    <div class="max-w-[60%]">
+                        <div class="font-bold text-gray-800 text-xs truncate">${p.nama}</div>
+                        <div class="text-[10px] text-gray-500">Rp${p.harga.toLocaleString('id-ID')} / ${p.satuan}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center border border-gray-200 rounded-lg bg-white overflow-hidden">
+                            <button onclick="aturQtyItem('${id}', -1)" class="px-2 py-0.5 text-xs bg-gray-50 text-gray-600 hover:bg-gray-100">-</button>
+                            <span class="px-2.5 font-bold text-xs text-gray-800">${keranjang[id]}</span>
+                            <button onclick="aturQtyItem('${id}', 1)" class="px-2 py-0.5 text-xs bg-gray-50 text-gray-600 hover:bg-gray-100">+</button>
+                        </div>
+                        <div class="text-xs font-black text-gray-900 w-16 text-right">Rp${sub.toLocaleString('id-ID')}</div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            let dataOngkir = kalkulasiOngkirToko(infoToko, subtotalHarga);
+            let totalAkhir = subtotalHarga + dataOngkir.nominal;
+
+            document.getElementById('nota-total-qty').textContent = totalQty;
+            document.getElementById('nota-subtotal-harga').textContent = `Rp${subtotalHarga.toLocaleString('id-ID')}`;
+            document.getElementById('nota-ongkir-harga').textContent = `Rp${dataOngkir.nominal.toLocaleString('id-ID')}`;
+            document.getElementById('badge-status-ongkir').textContent = `(${dataOngkir.status})`;
+            document.getElementById('nota-total-harga').textContent = `Rp${totalAkhir.toLocaleString('id-ID')}`;
+        }
+
+        // Format Pesanan Teks WhatsApp & Clipboard
+        function buatTeksNota() {
+            if(!keranjangIdToko) return "";
+            const infoToko = databaseToko.find(t => t.id === keranjangIdToko);
+            const namaToko = infoToko ? infoToko.nama : keranjangIdToko;
+
+            const namaCust = document.getElementById('cust-nama').value || '-';
+            const telpCust = document.getElementById('cust-telp').value || '-';
+            const alamatCust = document.getElementById('cust-alamat').value || '-';
+
+            let teks = `*NOTA ORDER PESANAN - ${namaToko.toUpperCase()}*\n`;
+            teks += `-----------------------------------------\n`;
+            teks += `*DATA PELANGGAN:*\n`;
+            teks += `Nama: ${namaCust}\n`;
+            teks += `WA/Telp: ${telpCust}\n`;
+            teks += `Alamat Kirim: ${alamatCust}\n`;
+            teks += `-----------------------------------------\n`;
+            teks += `*DAFTAR ITEM BELANJA:*\n`;
+
+            let subtotal = 0;
+            Object.keys(keranjang).forEach((id, i) => {
+                const p = databaseProduk.find(prod => prod.idProduk === id);
+                if(p) {
+                    const sub = p.harga * keranjang[id];
+                    subtotal += sub;
+                    teks += `${i+1}. ${p.nama} (${keranjang[id]} ${p.satuan}) -> Rp${sub.toLocaleString('id-ID')}\n`;
+                }
+            });
+
+            let dataOngkir = kalkulasiOngkirToko(infoToko, subtotal);
+            let totalAkhir = subtotal + dataOngkir.nominal;
+
+            teks += `-----------------------------------------\n`;
+            teks += `*SUBTOTAL:* Rp${subtotal.toLocaleString('id-ID')}\n`;
+            teks += `*ONGKOS KIRIM:* Rp${dataOngkir.nominal.toLocaleString('id-ID')} (${dataOngkir.status})\n`;
+            teks += `*TOTAL PEMBAYARAN:* Rp${totalAkhir.toLocaleString('id-ID')}\n`;
+            teks += `-----------------------------------------\n`;
+            teks += `_Pesanan dibuat otomatis via Katalog Online Grosir Bersama_`;
+            return teks;
+        }
+
+        function salinNotaTeks() {
+            const teks = buatTeksNota();
+            if(!teks) { alert("Keranjang belanja masih kosong!"); return; }
+            navigator.clipboard.writeText(teks).then(() => { alert("Nota teks berhasil disalin!"); });
+        }
+
+        function kirimWhatsApp() {
+            if(!keranjangIdToko) { alert("Keranjang masih kosong!"); return; }
+            const infoToko = databaseToko.find(t => t.id === keranjangIdToko);
+            if(!infoToko || !infoToko.wa) { alert("Nomor WhatsApp mitra toko belum terdaftar."); return; }
+
+            let subtotalAwal = 0;
+            Object.keys(keranjang).forEach(id => {
+                const p = databaseProduk.find(prod => prod.idProduk === id);
+                if(p) subtotalAwal += p.harga * keranjang[id];
+            });
+            if (infoToko.minKirim && subtotalAwal < infoToko.minKirim) {
+                alert(`Maaf, Toko ini menetapkan batas minimal belanja untuk pengiriman sebesar Rp${infoToko.minKirim.toLocaleString('id-ID')}.\n\nSubtotal belanja Anda saat ini baru Rp${subtotalAwal.toLocaleString('id-ID')}. Silakan tambah item barang.`);
+                return;
+            }
+
+            const namaCust = document.getElementById('cust-nama').value.trim();
+            const alamatCust = document.getElementById('cust-alamat').value.trim();
+            if(!namaCust || !alamatCust) { alert("Harap isi Nama dan Alamat Pengiriman Anda terlebih dahulu!"); return; }
+
+            const teksNota = encodeURIComponent(buatTeksNota());
+            let nomorWA = infoToko.wa.replace(/[^0-9]/g, '');
+            if (nomorWA.startsWith('0')) nomorWA = '62' + nomorWA.slice(1);
+
+            window.open(`https://wa.me/${nomorWA}?text=${teksNota}`, '_blank');
+        }
+
+        // Penyimpanan Data Biodata di Memory HP Pembeli
+        function simpanBiodataLokal() {
+            localStorage.setItem('cust_nama', document.getElementById('cust-nama').value);
+            localStorage.setItem('cust_telp', document.getElementById('cust-telp').value);
+            localStorage.setItem('cust_alamat', document.getElementById('cust-alamat').value);
+        }
+
+        function muatBiodataLokal() {
+            if(localStorage.getItem('cust_nama')) document.getElementById('cust-nama').value = localStorage.getItem('cust_nama');
+            if(localStorage.getItem('cust_telp')) document.getElementById('cust-telp').value = localStorage.getItem('cust_telp');
+            if(localStorage.getItem('cust_alamat')) document.getElementById('cust-alamat').value = localStorage.getItem('cust_alamat');
+        }
+
+        // Sistem Navigasi Mode Halaman Utama vs Toko Tunggal
+        async function setMode(mode) {
+            modeAktif = mode;
+            const btnSemua = document.getElementById('btn-mode-semua');
+            const btnToko = document.getElementById('btn-mode-toko');
+            const banner = document.getElementById('banner-toko-aktif');
+
+            if (mode === 'semua') {
+                tokoTerpilih = null;
+                banner.classList.add('hidden');
+                btnSemua.className = "px-4 py-2 text-xs font-semibold rounded-full bg-green-600 text-white shadow-sm transition";
+                btnToko.className = "px-4 py-2 text-xs font-semibold rounded-full bg-gray-200 text-gray-700 shadow-sm transition";
+                tampilkanSkeletonLoader();
+                await muatSemuaProduk();
+            } else {
+                if(!tokoTerpilih) { toggleModalToko(); setMode('semua'); }
+            }
+        }
+
+        async function pilihMitraToko(idToko) {
+            tokoTerpilih = idToko;
+            toggleModalToko();
+            
+            const btnSemua = document.getElementById('btn-mode-semua');
+            const btnToko = document.getElementById('btn-mode-toko');
+            const banner = document.getElementById('banner-toko-aktif');
+            
+            btnSemua.className = "px-4 py-2 text-xs font-semibold rounded-full bg-gray-200 text-gray-700 shadow-sm transition";
+            btnToko.className = "px-4 py-2 text-xs font-semibold rounded-full bg-green-600 text-white shadow-sm transition";
+            
+            const infoToko = databaseToko.find(t => t.id === idToko);
+            if(infoToko) {
+                document.getElementById('nama-toko-header').textContent = infoToko.nama;
+                document.getElementById('detail-toko-header').innerHTML = `<i class="fa-solid fa-clock"></i> ${infoToko.jamBuka || '08:00 - 17:00'} | <i class="fa-solid fa-location-dot"></i> ${infoToko.alamat || 'Alamat Toko'}`;
+                
+                document.getElementById('info-layanan-antar').textContent = infoToko.layananAntar;
+                document.getElementById('info-ongkir').textContent = infoToko.ongkir;
+                document.getElementById('info-min-kirim').textContent = infoToko.minKirim > 0 ? `Rp${infoToko.minKirim.toLocaleString('id-ID')}` : 'Tidak Ada Minimal';
+
+                const badgeStatus = document.getElementById('badge-status-toko');
+                badgeStatus.textContent = infoToko.status;
+                if(infoToko.status === 'Buka') {
+                    badgeStatus.className = "text-[10px] bg-green-500 text-white px-2 py-0.5 rounded font-black uppercase tracking-wider";
+                } else {
+                    badgeStatus.className = "text-[10px] bg-red-500 text-white px-2 py-0.5 rounded font-black uppercase tracking-wider";
+                }
+
+                const wrapCatatan = document.getElementById('wrapper-catatan-toko');
+                if (infoToko.catatan && infoToko.catatan.trim() !== '') {
+                    document.getElementById('info-catatan-toko').textContent = infoToko.catatan;
+                    wrapCatatan.classList.remove('hidden');
+                } else {
+                    wrapCatatan.classList.add('hidden');
+                }
+                
+                const containerMaps = document.getElementById('container-tombol-maps');
+
+// 1. Buat teks tombol Shareloc (jika ada datanya di Google Sheet)
+let tombolMapsTeks = '';
+if (infoToko.shareloc && infoToko.shareloc.trim() !== '') {
+    let urlMap = infoToko.shareloc.trim();
+    // Antisipasi jika Anda lupa menulis https:// di Google Sheet (Mencegah eror broken link)
+    if (!urlMap.startsWith('http://') && !urlMap.startsWith('https://')) {
+        urlMap = 'https://' + urlMap;
+    }
+    tombolMapsTeks = `
+        <a href="${urlMap}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg border border-white/20 transition backdrop-blur-sm">
+            <i class="fa-solid fa-map-location-dot text-amber-300"></i> Buka Lokasi Map
+        </a>`;
+}
+
+// 2. Buat teks tombol Bagikan Toko (Otomatis muncul untuk setiap toko)
+let tombolBagikanTeks = `
+    <button onclick="bagikanLinkTokoSaja()" class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg transition shadow-sm cursor-pointer border-none">
+        <i class="fa-solid fa-share-nodes"></i> Bagikan Toko
+    </button>`;
+
+// 3. Gabungkan kedua tombol ke dalam website
+containerMaps.innerHTML = `<div class="flex items-center gap-2">${tombolMapsTeks} ${tombolBagikanTeks}</div>`;
+// 2. Buat teks tombol Bagikan Toko (selalu muncul otomatis untuk setiap toko)
+let tombolBagikanTeks = `
+    <button onclick="bagikanLinkTokoSaja()" class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg transition shadow-sm cursor-pointer">
+        <i class="fa-solid fa-share-nodes"></i> Bagikan Toko
+    </button>`;
+
+// 3. Gabungkan kedua tombol tersebut ke dalam container website
+containerMaps.innerHTML = `<div class="flex items-center gap-2">${tombolMapsTeks} ${tombolBagikanTeks}</div>`;                
+                banner.classList.remove('hidden');
+            }
+
+            //  UBAH MENJADI SEPERTI INI:
+    modeAktif = 'toko';
+    
+    // Baris baru agar URL otomatis berubah jadi pendek saat toko diklik:
+    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `#/toko/${idToko}`;
+    window.history.pushState({ path: newUrl }, '', newUrl);
+
+    await muatProdukSpesifikToko(idToko);
+}
+        function renderModalToko() {
+            const container = document.getElementById('daftar-toko-list');
+            container.innerHTML = databaseToko.map(t => `
+                <button onclick="pilihMitraToko('${t.id}')" class="w-full text-left p-3 border border-gray-100 rounded-xl hover:bg-green-50 flex justify-between items-center bg-gray-50 transition">
+                    <div>
+                        <div class="font-bold text-gray-800 text-sm">${t.nama} <span class="text-xs font-normal text-gray-400">(${t.id})</span></div>
+                        <div class="text-xs text-gray-500 mt-0.5"><i class="fa-solid fa-clock text-[10px]"></i> ${t.jamBuka || '08:00 - 17:00'}</div>
+                    </div>
+                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-md ${t.status === 'Buka' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${t.status}</span>
+                </button>
+            `).join('');
+        }
+
+        function filterKategori(kat) {
+            kategoriAktif = kat;
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.getAttribute('onclick')?.includes(`'${kat}'`)) {
+                    btn.classList.add('active');
+                }
+            });
+            renderProduk();
+        }
+
+        function filterProduk() {
+            queryPencarian = document.getElementById('search-input').value;
+            renderProduk();
+        }
+
+        function toggleModalToko() {
+            const modal = document.getElementById('modal-toko');
+            const content = modal.querySelector('div');
+            if(modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('translate-y-full'); }, 50);
+            } else {
+                modal.className = "fixed inset-0 bg-black/50 z-50 flex items-end justify-center opacity-0 transition-opacity duration-300";
+                content.className = "bg-white w-full max-w-md rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto transform translate-y-full transition-transform duration-300";
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        function bukaKeranjang() {
+            const modal = document.getElementById('modal-keranjang');
+            const content = modal.querySelector('div');
+            if(modal.classList.contains('hidden')) {
+                renderIsiKeranjang();
+                modal.classList.remove('hidden');
+                setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('translate-y-full'); }, 50);
+            } else {
+                modal.className = "fixed inset-0 bg-black/50 z-50 flex items-end justify-center opacity-0 transition-opacity duration-300";
+                content.className = "bg-white w-full max-w-md rounded-t-2xl p-5 max-h-[90vh] overflow-y-auto transform translate-y-full transition-transform duration-300";
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+     // FUNGSI UNTUK MENYALIN LINK TOKO OTOMATIS SAAT TOMBOL DIKLIK
+function bagikanLinkTokoSaja() {
+    const linkToko = window.location.href;
+
+    navigator.clipboard.writeText(linkToko).then(() => {
+        alert("🔗 Link toko berhasil disalin! Silakan tempel (paste) dan bagikan ke WhatsApp pelanggan.");
+    }).catch(err => {
+        console.error("Gagal menyalin link: ", err);
+        alert("Gagal menyalin otomatis. Silakan salin langsung dari address bar browser Anda.");
+    });
+}
+    </script>
+</body>
+</html>
