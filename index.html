@@ -67,7 +67,6 @@
             overflow: hidden;
         }
 
-        /* Animasi Terbang ke Keranjang */
         .flying-item {
             position: fixed;
             background: #16a34a;
@@ -152,7 +151,12 @@
                             <span class="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">Mitra Toko Terpilih</span>
                             <span id="badge-status-toko" class="text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider">Buka</span>
                         </div>
-                        <h2 id="nama-toko-header" class="text-xl font-bold">Nama Toko</h2>
+                        <div class="flex items-center gap-3">
+                            <h2 id="nama-toko-header" class="text-xl font-bold">Nama Toko</h2>
+                            <button onclick="shareTokoAktif()" class="text-white bg-white/20 hover:bg-white/30 w-7 h-7 rounded-full flex items-center justify-center text-xs transition" title="Bagikan Link Toko">
+                                <i class="fa-solid fa-share-nodes"></i>
+                            </button>
+                        </div>
                         <p id="detail-toko-header" class="text-xs text-green-100"><i class="fa-solid fa-clock"></i> Jam Buka | <i class="fa-solid fa-location-dot"></i> Alamat</p>
                         
                         <div id="wrapper-catatan-toko" class="mt-2 bg-black/20 p-2.5 rounded-xl border border-white/10 text-[11px] hidden">
@@ -226,9 +230,16 @@
                 <button onclick="tutupModalDetail()" class="absolute top-3 right-3 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold z-10">&times;</button>
             </div>
             <div class="p-5">
-                <div class="flex justify-between items-start gap-2">
+                <div class="flex justify-between items-center gap-2">
                     <span id="modal-detail-toko" class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded font-bold">Nama Toko</span>
-                    <button id="btn-modal-wishlist" onclick="toggleWishlistAktif()" class="text-gray-400 text-lg hover:text-red-500 transition"><i class="fa-regular fa-heart"></i></button>
+                    <div class="flex items-center gap-2">
+                        <button onclick="shareProdukAktif()" class="text-gray-400 text-base hover:text-green-600 transition" title="Bagikan Produk">
+                            <i class="fa-solid fa-share-nodes"></i>
+                        </button>
+                        <button id="btn-modal-wishlist" onclick="toggleWishlistAktif()" class="text-gray-400 text-lg hover:text-red-500 transition">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                    </div>
                 </div>
                 <h3 id="modal-detail-nama" class="font-bold text-gray-900 text-lg mt-2">Nama Produk</h3>
                 <div id="modal-detail-harga" class="text-green-600 font-black text-xl mt-1">Rp0</div>
@@ -250,77 +261,83 @@
     </div>
 
     <div id="modal-keranjang" class="fixed inset-0 bg-black/50 z-50 flex items-end justify-center hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white w-full max-w-md rounded-t-2xl p-5 max-h-[90vh] overflow-y-auto transform translate-y-full transition-transform duration-300">
-            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+        <div class="bg-white w-full max-w-md rounded-t-2xl p-5 max-h-[92vh] flex flex-col transform translate-y-full transition-transform duration-300">
+            
+            <div class="flex justify-between items-center mb-3 border-b border-gray-100 pb-2 shrink-0">
                 <h3 class="font-bold text-gray-900 text-base flex items-center gap-2"><i class="fa-solid fa-basket-shopping text-green-600"></i> Keranjang Belanja</h3>
-                <button onclick="bukaKeranjang()" class="text-gray-400 text-2xl">&times;</button>
+                <button onclick="bukaKeranjang()" class="text-gray-400 text-2xl hover:text-gray-600 p-1">&times;</button>
             </div>
 
-            <div class="bg-gray-50 rounded-xl p-3 mb-4 border border-gray-200 space-y-2.5">
-                <input type="text" id="cust-nama" oninput="simpanBiodataLokal()" placeholder="Nama Lengkap Anda..." class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none">
-                <input type="tel" id="cust-telp" oninput="simpanBiodataLokal()" placeholder="Nomor WhatsApp..." class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none">
-                <textarea id="cust-alamat" oninput="simpanBiodataLokal()" rows="2" placeholder="Alamat Pengiriman..." class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none"></textarea>
-            </div>
-
-            <div id="info-toko-di-keranjang" class="text-[11px] bg-amber-50 text-amber-800 border border-amber-200 p-2.5 rounded-xl mb-3 hidden"></div>
-            <div id="notif-sisa-ongkir" class="text-[11px] bg-blue-50 text-blue-800 border border-blue-200 p-2.5 rounded-xl mb-3 hidden"></div>
-
-            <div id="container-ai-suggester"></div>
-
-            <div id="keranjang-items-list" class="space-y-2 mb-4"></div>
-
-            <div class="mb-4 bg-gray-50 p-3 rounded-xl border border-gray-200">
-                <label class="text-xs font-bold text-gray-500 uppercase block mb-2"><i class="fa-solid fa-wallet"></i> Metode Pembayaran</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <label class="flex items-center gap-2 p-2 bg-white border border-green-500 rounded-xl cursor-pointer">
-                        <input type="radio" name="opsi-bayar" value="QRIS" checked onchange="ubahOpsiBayarTampilan()">
-                        <span class="text-xs font-bold text-gray-700"><i class="fa-solid fa-qrcode text-blue-500"></i> QRIS DANA</span>
-                    </label>
-                    <label class="flex items-center gap-2 p-2 bg-white border border-gray-200 rounded-xl cursor-pointer">
-                        <input type="radio" name="opsi-bayar" value="COD" onchange="ubahOpsiBayarTampilan()">
-                        <span class="text-xs font-bold text-gray-700"><i class="fa-solid fa-hand-holding-dollar text-amber-500"></i> COD</span>
-                    </label>
+            <div class="overflow-y-auto flex-1 pr-1 space-y-4 max-h-[48vh] md:max-h-[55vh]">
+                <div class="bg-gray-50 rounded-xl p-3 border border-gray-200 space-y-2.5">
+                    <input type="text" id="cust-nama" oninput="simpanBiodataLokal()" placeholder="Nama Lengkap Anda..." class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-green-500">
+                    <input type="tel" id="cust-telp" oninput="simpanBiodataLokal()" placeholder="Nomor WhatsApp..." class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-green-500">
+                    <textarea id="cust-alamat" oninput="simpanBiodataLokal()" rows="2" placeholder="Alamat Pengiriman..." class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-green-500"></textarea>
                 </div>
-                
-                <div id="area-tampilan-qris" class="mt-3 p-2 bg-white border border-dashed border-gray-200 rounded-xl text-center">
-                    <p class="text-[10px] text-gray-500 mb-1">Screenshot & Scan QRIS DANA Toko:</p>
-                    <div class="w-32 h-32 mx-auto bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                        <img id="img-qris-toko" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=GrosirBersamaDesa" class="w-full h-full object-contain">
+
+                <div id="info-toko-di-keranjang" class="text-[11px] bg-amber-50 text-amber-800 border border-amber-200 p-2.5 rounded-xl hidden"></div>
+                <div id="notif-sisa-ongkir" class="text-[11px] bg-blue-50 text-blue-800 border border-blue-200 p-2.5 rounded-xl hidden"></div>
+
+                <div id="container-ai-suggester"></div>
+
+                <div id="keranjang-items-list" class="space-y-2"></div>
+
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                    <label class="text-xs font-bold text-gray-500 uppercase block mb-2"><i class="fa-solid fa-wallet"></i> Metode Pembayaran</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 p-2 bg-white border border-green-500 rounded-xl cursor-pointer">
+                            <input type="radio" name="opsi-bayar" value="QRIS" checked onchange="ubahOpsiBayarTampilan()">
+                            <span class="text-xs font-bold text-gray-700"><i class="fa-solid fa-qrcode text-blue-500"></i> QRIS DANA</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white border border-gray-200 rounded-xl cursor-pointer">
+                            <input type="radio" name="opsi-bayar" value="COD" onchange="ubahOpsiBayarTampilan()">
+                            <span class="text-xs font-bold text-gray-700"><i class="fa-solid fa-hand-holding-dollar text-amber-500"></i> COD</span>
+                        </label>
                     </div>
-                    <p class="text-[10px] text-red-500 font-bold mt-1 animate-pulse">⚠️ Wajib Kirim Bukti Transfer ke WA!</p>
+                    
+                    <div id="area-tampilan-qris" class="mt-3 p-2 bg-white border border-dashed border-gray-200 rounded-xl text-center">
+                        <p class="text-[10px] text-gray-500 mb-1">Screenshot & Scan QRIS DANA Toko:</p>
+                        <div class="w-32 h-32 mx-auto bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                            <img id="img-qris-toko" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=GrosirBersamaDesa" class="w-full h-full object-contain">
+                        </div>
+                        <p class="text-[10px] text-red-500 font-bold mt-1 animate-pulse">⚠️ Wajib Kirim Bukti Transfer ke WA!</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                    <label class="text-xs font-bold text-gray-500 uppercase block mb-2"><i class="fa-solid fa-truck"></i> Pilihan Pengiriman</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center justify-between p-2 bg-white border border-green-500 rounded-xl cursor-pointer text-xs">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="opsi-kurir" value="Toko" checked onchange="renderIsiKeranjang()">
+                                <span class="font-bold text-gray-700">Kurir Internal Toko</span>
+                            </div>
+                            <span id="label-ongkir-toko-internal" class="text-gray-500">Ikut Aturan Toko</span>
+                        </label>
+                        <label class="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-xl cursor-pointer text-xs">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="opsi-kurir" value="Kurir_Lokal" onchange="renderIsiKeranjang()">
+                                <span class="font-bold text-gray-700">Kurir Kilat Desa (Ojek Desa)</span>
+                            </div>
+                            <span class="text-green-600 font-bold">Flat Rp5.000</span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
-            <div class="mb-4 bg-gray-50 p-3 rounded-xl border border-gray-200">
-                <label class="text-xs font-bold text-gray-500 uppercase block mb-2"><i class="fa-solid fa-truck"></i> Pilihan Pengiriman</label>
-                <div class="space-y-2">
-                    <label class="flex items-center justify-between p-2 bg-white border border-green-500 rounded-xl cursor-pointer text-xs">
-                        <div class="flex items-center gap-2">
-                            <input type="radio" name="opsi-kurir" value="Toko" checked onchange="renderIsiKeranjang()">
-                            <span class="font-bold text-gray-700">Kurir Internal Toko</span>
-                        </div>
-                        <span id="label-ongkir-toko-internal" class="text-gray-500">Ikut Aturan Toko</span>
-                    </label>
-                    <label class="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-xl cursor-pointer text-xs">
-                        <div class="flex items-center gap-2">
-                            <input type="radio" name="opsi-kurir" value="Kurir_Lokal" onchange="renderIsiKeranjang()">
-                            <span class="font-bold text-gray-700">Kurir Kilat Desa (Ojek Desa)</span>
-                        </div>
-                        <span class="text-green-600 font-bold">Flat Rp5.000</span>
-                    </label>
+            <div class="border-t border-gray-100 pt-3 mt-2 shrink-0 bg-white">
+                <div class="space-y-1 text-xs text-gray-600 mb-3">
+                    <div class="flex justify-between"><span>Subtotal:</span><span id="nota-subtotal-harga" class="font-bold text-gray-900">Rp0</span></div>
+                    <div class="flex justify-between"><span>Ongkir:</span><span id="nota-ongkir-harga" class="font-bold text-gray-900">Rp0</span></div>
+                    <div class="flex justify-between text-sm text-gray-900 font-black border-t border-dashed pt-2"><span>Total Pay:</span><span id="nota-total-harga" class="text-green-600">Rp0</span></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="salinNotaTeks()" class="w-full py-2.5 bg-gray-100 text-gray-700 font-bold text-xs rounded-xl border border-gray-200">Salin Nota</button>
+                    <button onclick="kirimWhatsApp()" class="w-full py-2.5 bg-green-600 text-white font-bold text-xs rounded-xl shadow-md">Kirim WA</button>
                 </div>
             </div>
 
-            <div class="border-t border-gray-100 pt-3 space-y-1 text-xs text-gray-600 mb-4">
-                <div class="flex justify-between"><span>Subtotal:</span><span id="nota-subtotal-harga" class="font-bold text-gray-900">Rp0</span></div>
-                <div class="flex justify-between"><span>Ongkir:</span><span id="nota-ongkir-harga" class="font-bold text-gray-900">Rp0</span></div>
-                <div class="flex justify-between text-sm text-gray-900 font-black border-t border-dashed pt-2"><span>Total Pay:</span><span id="nota-total-harga" class="text-green-600">Rp0</span></div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="salinNotaTeks()" class="w-full py-2.5 bg-gray-100 text-gray-700 font-bold text-xs rounded-xl border border-gray-200">Salin Nota</button>
-                <button onclick="kirimWhatsApp()" class="w-full py-2.5 bg-green-600 text-white font-bold text-xs rounded-xl shadow-md">Kirim WA</button>
-            </div>
         </div>
     </div>
 
@@ -357,7 +374,7 @@
             inisialisasiPWAInstall();
         });
 
-        // RE-ROUTING VIEW (DASHBOARD RAHASIA DAN DETEKSI HASH)
+        // RE-ROUTING VIEW & HASH TRACKING
         function lokasiNavigasiSistem() {
             const h = window.location.hash;
             if(h === '#/admin-dashboard') {
@@ -538,7 +555,6 @@
                 const bypassTokoStr = infoToko ? infoToko.bypass : 'Tidak';
                 const jumlah = keranjang[p.idProduk] || 0;
 
-                // Logika Blokir Tombol jika Toko Tutup (Kecuali ada Bypass)
                 let tombolBeliHtml = '';
                 if (statusTokoStr === 'Tutup' && bypassTokoStr !== 'Buka' && bypassTokoStr !== 'Ya') {
                     tombolBeliHtml = `<button disabled class="w-full bg-gray-300 text-gray-500 font-bold py-1.5 rounded-xl text-xs flex items-center justify-center gap-1 cursor-not-allowed">Toko Tutup</button>`;
@@ -660,7 +676,7 @@
             setTimeout(() => { piringan.remove(); }, 650);
         }
 
-        // LOGIKA INPUT DATA KERANJANG
+        // LOGIKA BARANG MASUK KERANJANG
         function tambahKeKeranjang(idProduk, idToko, elemenKlik = null) {
             if (keranjangIdToko && keranjangIdToko !== idToko) {
                 let konfirmasi = confirm("Hapus keranjang belanja di toko sebelumnya untuk berpindah belanja ke toko baru ini?");
@@ -701,6 +717,7 @@
             }
         }
 
+        // SISTEM WISHLIST FAVORIT
         function toggleWishlistAktif() {
             if(!selectedIdProdukModal) return;
             const indeks = wishlist.indexOf(selectedIdProdukModal);
@@ -714,6 +731,43 @@
             renderProduk();
         }
 
+        // WEB SHARE API
+        function shareTokoAktif() {
+            if(!tokoTerpilih) return;
+            const infoToko = databaseToko.find(t => t.id === tokoTerpilih);
+            const namaToko = infoToko ? infoToko.nama : "Mitra Toko";
+            const tautan = `${window.location.origin}${window.location.pathname}#/toko/${tokoTerpilih}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: `Belanja di ${namaToko}`,
+                    text: `Yuk cek barang grosir termurah di ${namaToko} lewat platform Grosir Bersama!`,
+                    url: tautan
+                }).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(tautan);
+                alert(`Link toko berhasil disalin: ${tautan}`);
+            }
+        }
+
+        function shareProdukAktif() {
+            if(!selectedIdProdukModal) return;
+            const p = databaseProduk.find(prod => prod.idProduk === selectedIdProdukModal);
+            if(!p) return;
+            const tautan = `${window.location.origin}${window.location.pathname}#/produk/${selectedIdProdukModal}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: p.nama,
+                    text: `Beli ${p.nama} harga grosir Rp${p.harga.toLocaleString('id-ID')} hanya di aplikasi Grosir Bersama Desa!`,
+                    url: tautan
+                }).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(tautan);
+                alert(`Link produk berhasil disalin: ${tautan}`);
+            }
+        }
+
         function ubahOpsiBayarTampilan() {
             const areaQris = document.getElementById('area-tampilan-qris');
             const opsiTerpilih = document.querySelector('input[name="opsi-bayar"]:checked').value;
@@ -721,7 +775,7 @@
             else areaQris.classList.add('hidden');
         }
 
-        // ENGINE PINTAR AI ORDER SUGGESTER LOKAL
+        // AI ORDER SUGGESTER LOKAL
         function prosesAISuggesterLokal(isiKeranjangTeks) {
             const containerSuggester = document.getElementById('container-ai-suggester');
             let produkSaran = null;
@@ -738,11 +792,11 @@
 
             if (produkSaran) {
                 containerSuggester.innerHTML = `
-                <div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-3 text-xs mb-3 shadow-xs">
+                <div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-3 text-xs shadow-xs">
                     <div class="font-bold text-amber-700 flex items-center gap-1 mb-1">
                         <i class="fa-solid fa-robot animate-bounce"></i> Rekomendasi Pintar Grosir:
                     </div>
-                    Warga yang membeli barang di keranjangmu biasanya juga memborong <b>${produkSaran.nama}</b>. Mau tambah sekalian?
+                    Membeli barang ini biasanya memborong <b>${produkSaran.nama}</b> juga. Tambah sekalian?
                     <button onclick="tambahKeKeranjang('${produkSaran.idProduk}', '${produkSaran.idToko}', this); renderIsiKeranjang();" class="mt-2 block w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-1.5 rounded-lg text-[10px] text-center transition">
                         + Tambah ${produkSaran.nama} (Rp${produkSaran.harga.toLocaleString('id-ID')})
                     </button>
@@ -784,22 +838,24 @@
                 gabunganTeksKeranjang += p.nama.toLowerCase() + ' ';
 
                 return `
-                <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl text-xs border border-gray-100">
-                    <div>
-                        <div class="font-bold text-gray-800">${p.nama}</div>
+                <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl text-xs border border-gray-100">
+                    <div class="max-w-[65%]">
+                        <div class="font-bold text-gray-800 truncate">${p.nama}</div>
                         <div class="text-[10px] text-gray-500">Rp${p.harga.toLocaleString('id-ID')}</div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-bold text-gray-700">${keranjang[id]}x</span>
-                        <div class="text-xs font-black">Rp${(p.harga * keranjang[id]).toLocaleString('id-ID')}</div>
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg p-0.5">
+                            <button onclick="aturQtyItem('${id}', -1)" class="w-5 h-5 bg-gray-100 text-gray-700 font-bold rounded flex items-center justify-center text-[10px]">-</button>
+                            <span class="font-bold px-1 text-gray-800 text-[11px]">${keranjang[id]}</span>
+                            <button onclick="aturQtyItem('${id}', 1)" class="w-5 h-5 bg-gray-100 text-gray-700 font-bold rounded flex items-center justify-center text-[10px]">+</button>
+                        </div>
+                        <div class="text-xs font-black text-right min-w-[60px]">Rp${(p.harga * keranjang[id]).toLocaleString('id-ID')}</div>
                     </div>
                 </div>`;
             }).join('');
 
-            // Jalankan AI Suggester
             prosesAISuggesterLokal(gabunganTeksKeranjang);
 
-            // Logika Edukasi Sisa Biaya Ongkir Toko
             let nominalOngkir = 0;
             const kurirTerpilih = document.querySelector('input[name="opsi-kurir"]:checked').value;
 
@@ -811,12 +867,12 @@
                 if (infoToko && subtotalHarga >= infoToko.minKirim) {
                     nominalOngkir = 0; 
                     wrapperNotifSisaOngkir.innerHTML = `🎉 Selamat! Kamu mendapat <b>Gratis Ongkir</b> dari toko ini karena belanja &ge; Rp${infoToko.minKirim.toLocaleString('id-ID')}`;
-                    wrapperNotifSisaOngkir.className = "text-[11px] bg-green-50 text-green-800 border border-green-200 p-2.5 rounded-xl mb-3";
+                    wrapperNotifSisaOngkir.className = "text-[11px] bg-green-50 text-green-800 border border-green-200 p-2.5 rounded-xl";
                 } else if (infoToko) {
                     nominalOngkir = ongkirTokoAsli;
                     let sisa = infoToko.minKirim - subtotalHarga;
                     wrapperNotifSisaOngkir.innerHTML = `💡 Tambah belanja <b>Rp${sisa.toLocaleString('id-ID')}</b> lagi untuk mendapatkan bebas biaya ongkir!`;
-                    wrapperNotifSisaOngkir.className = "text-[11px] bg-blue-50 text-blue-800 border border-blue-200 p-2.5 rounded-xl mb-3";
+                    wrapperNotifSisaOngkir.className = "text-[11px] bg-blue-50 text-blue-800 border border-blue-200 p-2.5 rounded-xl";
                 }
                 wrapperNotifSisaOngkir.classList.remove('hidden');
             }
@@ -828,7 +884,7 @@
             ubahOpsiBayarTampilan();
         }
 
-        // FORMAT TEKS NOTA UNTUK WHATSAPP / COPIED
+        // FORMAT TEKS NOTA UNTUK WHATSAPP
         function buatTeksNota() {
             if(!keranjangIdToko) return "";
             const infoToko = databaseToko.find(t => t.id === keranjangIdToko);
@@ -904,7 +960,7 @@
             }
         }
 
-        // SET MODE GLOBAL VIEW
+        // SWITCH VIEW MODE CONTROLLER
         async function setMode(mode) {
             modeAktif = mode;
             if (mode === 'semua') {
@@ -936,7 +992,6 @@
                 document.getElementById('info-layanan-antar').textContent = infoToko.layananAntar;
                 document.getElementById('info-ongkir').textContent = "Rp" + infoToko.ongkir;
 
-                // Mengaktifkan Banner Catatan Pengumuman jika Terisi
                 const wrapCatatan = document.getElementById('wrapper-catatan-toko');
                 if (infoToko.catatan && infoToko.catatan.trim() !== '') {
                     document.getElementById('info-catatan-toko').textContent = infoToko.catatan;
@@ -945,7 +1000,6 @@
                     wrapCatatan.classList.add('hidden');
                 }
 
-                // Desain Badge Status Buka/Tutup
                 const bStatus = document.getElementById('badge-status-toko');
                 bStatus.textContent = infoToko.status;
                 if(infoToko.status === 'Buka') bStatus.className = "text-[10px] bg-green-500 text-white px-2 py-0.5 rounded font-black uppercase tracking-wider";
@@ -965,7 +1019,7 @@
             `).join('');
         }
 
-        // FILTER KATEGORI & PENCARIAN BAR
+        // FILTER KATEGORI & KEYWORDS SEARCH
         function filterKategori(kat) {
             kategoriAktif = kat;
             document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
@@ -978,7 +1032,7 @@
             renderProduk(); 
         }
         
-        // MODAL TOGGLER ANIMATION UTILITY
+        // MODAL ANIMATION UTILITY
         function toggleModalToko() {
             const m = document.getElementById('modal-toko'); const c = m.querySelector('div');
             if(m.classList.contains('hidden')) { 
@@ -999,7 +1053,7 @@
                 setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('translate-y-full'); }, 50); 
             } else { 
                 m.className = "fixed inset-0 bg-black/50 z-50 flex items-end justify-center opacity-0 transition-opacity duration-300"; 
-                c.className = "bg-white w-full max-w-md rounded-t-2xl p-5 transform translate-y-full transition-transform duration-300"; 
+                c.className = "bg-white w-full max-w-md rounded-t-2xl p-5 flex flex-col transform translate-y-full transition-transform duration-300"; 
                 setTimeout(() => m.classList.add('hidden'), 300); 
             }
         }
@@ -1013,7 +1067,7 @@
             setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2500);
         }
         
-        // PULL TO REFRESH INTERACTION ENGINE
+        // INTERAKSI PULL TO REFRESH
         function inisialisasiPullToRefresh() {
             document.addEventListener('touchstart', e => { 
                 if (window.scrollY === 0) { startY = e.touches[0].clientY; isTop = true; } 
