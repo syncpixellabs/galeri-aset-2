@@ -335,7 +335,8 @@
                     idProduk: b.c[1] ? b.c[1].v.toString().trim() : '',
                     nama: b.c[2] ? b.c[2].v : '',
                     kategori: b.c[3] ? b.c[3].v : '',
-                    harga: b.c[4] ? Number(b.c[4].v) : 0,
+                    hargaTeks: b.c[4] ? b.c[4].v.toString() : '0',
+harga: b.c[4] ? (isNaN(Number(b.c[4].v)) ? 0 : Number(b.c[4].v)) : 0,
                     satuan: b.c[5] ? b.c[5].v : 'pcs',
                     gambar: b.c[6] ? b.c[6].v : '',
                     deskripsi: b.c[7] ? b.c[7].v : ''
@@ -515,7 +516,10 @@
                         <p class="text-[11px] text-gray-400 mb-2 line-clamp-2">${p.deskripsi || 'Klik untuk lihat detail deskripsi...'}</p>
                     </div>
                     <div>
-                        <div class="text-green-600 font-extrabold text-sm mb-2">Rp${p.harga.toLocaleString('id-ID')}<span class="text-gray-400 font-normal text-xs"> / ${p.satuan}</span></div>
+                       <div class="text-green-600 font-extrabold text-sm mb-2">
+    ${isNaN(Number(p.hargaTeks)) ? p.hargaTeks : 'Rp' + p.harga.toLocaleString('id-ID')}
+    <span class="text-gray-400 font-normal text-xs"> / ${p.satuan}</span>
+</div> 
                         ${htmlTombol}
                     </div>
                 </div>
@@ -540,7 +544,7 @@
 
             document.getElementById('modal-detail-toko').textContent = infoToko ? infoToko.nama : p.idToko;
             document.getElementById('modal-detail-nama').textContent = p.nama;
-            document.getElementById('modal-detail-harga').textContent = `Rp${p.harga.toLocaleString('id-ID')} / ${p.satuan}`;
+            document.getElementById('modal-detail-harga').textContent = isNaN(Number(p.hargaTeks)) ? `${p.hargaTeks} / ${p.satuan}` : `Rp${p.harga.toLocaleString('id-ID')} / ${p.satuan}`;
             document.getElementById('modal-detail-deskripsi').textContent = p.deskripsi || 'Tidak ada deskripsi produk secara spesifik.';
             
             const img = document.getElementById('modal-detail-img');
@@ -857,7 +861,8 @@
                 if(p) {
                     const sub = p.harga * keranjang[id];
                     subtotal += sub;
-                    teks += `${i+1}. ${p.nama} (${keranjang[id]} ${p.satuan}) -> Rp${sub.toLocaleString('id-ID')}\n`;
+                   const teksHargaNota = isNaN(Number(p.hargaTeks)) ? p.hargaTeks : `Rp${sub.toLocaleString('id-ID')}`;
+teks += `${i+1}. ${p.nama} (${keranjang[id]} ${p.satuan}) -> ${teksHargaNota}\n`; 
                 }
             });
 
