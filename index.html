@@ -331,16 +331,16 @@
                 const teks = await respon.text();
                 const json = JSON.parse(teks.substr(47).slice(0, -2));
                 databaseProduk = json.table.rows.map(b => ({
-                    idToko: b.c[0] ? b.c[0].v.toString().trim() : '',
-                    idProduk: b.c[1] ? b.c[1].v.toString().trim() : '',
-                    nama: b.c[2] ? b.c[2].v : '',
-                    kategori: b.c[3] ? b.c[3].v : '',
-                    hargaTeks: b.c[4] ? b.c[4].v.toString() : '0',
-harga: b.c[4] ? (isNaN(Number(b.c[4].v)) ? 0 : Number(b.c[4].v)) : 0,
-                    satuan: b.c[5] ? b.c[5].v : 'pcs',
-                    gambar: b.c[6] ? b.c[6].v : '',
-                    deskripsi: b.c[7] ? b.c[7].v : ''
-                })).filter(p => p.idToko !== 'ID_Toko' && p.idToko !== '');
+    idToko: b.c[0] ? b.c[0].v.toString().trim() : (typeof idToko !== 'undefined' ? idToko : ''),
+    idProduk: b.c[1] ? b.c[1].v.toString().trim() : '',
+    nama: b.c[2] ? b.c[2].v : '',
+    kategori: b.c[3] ? b.c[3].v : '',
+    hargaTeks: b.c[4] ? b.c[4].v.toString().trim() : '0',
+    harga: b.c[4] ? (isNaN(Number(b.c[4].v)) ? 0 : Number(b.c[4].v)) : 0,
+    satuan: b.c[5] ? b.c[5].v : 'pcs',
+    gambar: b.c[6] ? b.c[6].v : '',
+    deskripsi: b.c[7] ? b.c[7].v : ''
+})).filter(p => p.idProduk !== 'ID_Produk' && p.idProduk !== '');
                 renderProduk();
             } catch (err) { console.error("Gagal memuat Semua_Produk:", err); }
         }
