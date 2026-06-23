@@ -743,24 +743,41 @@
             let delayedPrompt;
             const btnInstal = document.getElementById('btnInstal');
 
+            // 1. Jalur Android: Jika mendukung instalasi otomatis
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 delayedPrompt = e;
                 btnInstal.style.display = 'inline-flex';
             });
 
+            // 2. Jalur iPhone: Deteksi jika pengguna memakai iOS Safari
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+
+            // Jika dia pakai iPhone dan BELUM menginstal aplikasinya, tombol hijau langsung nongol!
+            if (isIOS && !isStandalone) {
+                btnInstal.style.display = 'inline-flex';
+            }
+
             btnInstal.addEventListener('click', async () => {
+                // Respons Android
                 if (delayedPrompt) {
                     delayedPrompt.prompt();
                     const { outcome } = await delayedPrompt.userChoice;
-                    console.log(`Pilihan pengguna: ${outcome}`);
                     delayedPrompt = null;
                     btnInstal.style.display = 'none';
+                } 
+                // Respons iPhone (Berikan petunjuk pop-up otomatis yang ramah)
+                else if (isIOS) {
+                    alert("📱 Cara Mudah Instal di iPhone:\n\n1. Klik tombol 'Bagikan' (Share Icon berbentuk kotak dengan panah ke atas) di bagian bawah browser Safari.\n2. Gulir ke bawah dan pilih 'Tambahkan ke Layar Utama' (Add to Home Screen).\n3. Aplikasi Grosir Bersama akan langsung nangkring di HP Anda!");
+                } 
+                // Respons Laptop / Browser lain
+                else {
+                    alert("💡 Untuk menginstal: Klik titik tiga di kanan atas browser Anda, lalu pilih 'Instal Aplikasi' atau 'Tambahkan ke Layar Utama'.");
                 }
             });
 
             window.addEventListener('appinstalled', () => {
-                console.log('Aplikasi Grosir Bersama berhasil diinstal!');
                 btnInstal.style.display = 'none';
             });
         }
