@@ -211,13 +211,10 @@
         <div class="bg-white w-full max-w-md rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto transform translate-y-full transition-transform duration-300">
             <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
                 <h3 class="font-bold text-gray-900 text-base flex items-center gap-2">
-                    <i class="fa-solid fa-basket-shopping text-green-600"></i> Keranjang Nota Belanja
+                    <i class="fa-solid fa-store text-green-600"></i> Silakan Pilih Mitra Toko
                 </h3>
                 <div class="flex items-center gap-3">
-                    <button onclick="kosongkanKeranjang()" class="text-red-500 hover:text-red-700 text-xs font-semibold flex items-center gap-1 cursor-pointer transition border-none bg-transparent" title="Kosongkan semua item">
-                        <i class="fa-solid fa-trash-can"></i> Kosongkan
-                    </button>
-                    <button onclick="bukaKeranjang()" class="text-gray-400 text-2xl">&times;</button>
+                    <button onclick="toggleModalToko()" class="text-gray-400 text-2xl hover:text-gray-600 transition border-none bg-transparent cursor-pointer">&times;</button>
                 </div>
             </div>
             <div id="daftar-toko-list" class="space-y-3"></div>
