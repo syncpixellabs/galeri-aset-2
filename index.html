@@ -1208,15 +1208,29 @@
                     localStorage.removeItem('jadwal_hapus_keranjang');
                 }
             }
-   // Pindahkan ini ke bagian paling bawah script agar bisa diakses secara global
-function catatKlikProduk(idProduk) {
-    let dataKlik = JSON.parse(localStorage.getItem('riwayat_klik')) || {};
-    dataKlik[idProduk] = (dataKlik[idProduk] || 0) + 1;
-    localStorage.setItem('riwayat_klik', JSON.stringify(dataKlik));
-} 
+   // Fungsi untuk mengecek waktu hapus keranjang otomatis
+        (function periksaWaktuKeranjang() {
+            const jadwalHapus = localStorage.getItem('jadwal_hapus_keranjang');
+            if (jadwalHapus) {
+                if (Date.now() > parseInt(jadwalHapus)) {
+                    if (typeof kosongkanKeranjang === "function") {
+                        kosongkanKeranjang();
+                    }
+                    localStorage.removeItem('jadwal_hapus_keranjang');
+                }
+            }
         })();
+
+        // Fungsi untuk mencatat klik produk
+        function catatKlikProduk(idProduk) {
+            let dataKlik = JSON.parse(localStorage.getItem('riwayat_klik')) || {};
+            dataKlik[idProduk] = (dataKlik[idProduk] || 0) + 1;
+            localStorage.setItem('riwayat_klik', JSON.stringify(dataKlik));
+        }
+   <script>
         
-    </script>
+</body>
+</html>
     
 </body>
 </html>
