@@ -313,22 +313,16 @@
             renderProduk();
         }
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            muatBiodataLokal();
-            muatWishlistLokal();
-            // Tambahkan fungsi ini di bawah fungsi muatWishlistLokal()
-function catatKlikProduk(idProduk) {
-    let dataKlik = JSON.parse(localStorage.getItem('riwayat_klik')) || {};
-    dataKlik[idProduk] = (dataKlik[idProduk] || 0) + 1;
-    localStorage.setItem('riwayat_klik', JSON.stringify(dataKlik));
-}
-            tampilkanSkeletonLoader();
-            await muatDaftarToko();
-            await muatSemuaProduk();
-            prosesDeepLinkingURLLoad();
-            inisialisasiPullToRefresh();
-            inisialisasiPWAInstall();
-        });
+       window.addEventListener('DOMContentLoaded', async () => {
+    muatBiodataLokal();
+    muatWishlistLokal();
+    tampilkanSkeletonLoader();
+    await muatDaftarToko();
+    await muatSemuaProduk();
+    prosesDeepLinkingURLLoad();
+    inisialisasiPullToRefresh();
+    inisialisasiPWAInstall();
+});
 
         function tampilkanSkeletonLoader() {
             const grid = document.getElementById('grid-produk');
@@ -1215,6 +1209,12 @@ function catatKlikProduk(idProduk) {
                     localStorage.removeItem('jadwal_hapus_keranjang');
                 }
             }
+   // Pindahkan ini ke bagian paling bawah script agar bisa diakses secara global
+function catatKlikProduk(idProduk) {
+    let dataKlik = JSON.parse(localStorage.getItem('riwayat_klik')) || {};
+    dataKlik[idProduk] = (dataKlik[idProduk] || 0) + 1;
+    localStorage.setItem('riwayat_klik', JSON.stringify(dataKlik));
+} 
         })();
 </body>
 </html>
