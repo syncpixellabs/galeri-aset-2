@@ -30,251 +30,225 @@
             opacity: 1;
         }
 
-        /* Gaya Toast Notifikasi Kustom */
         .toast-ongkir {
             position: fixed;
-            bottom: 85px;
+            bottom: 80px;
             left: 50%;
-            transform: translateX(-50%) translateY(20px);
+            transform: translateX(-50%) translateY(100px);
+            opacity: 0;
             background-color: #1f2937;
-            color: #ffffff;
+            color: white;
             padding: 10px 16px;
             border-radius: 12px;
             font-size: 12px;
             font-weight: 600;
+            z-index: 100;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 9999;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
             display: flex;
             align-items: center;
             gap: 8px;
-            opacity: 0;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
             pointer-events: none;
-            white-space: nowrap;
+            width: max-content;
+            max-width: 90%;
         }
         .toast-ongkir.show {
             transform: translateX(-50%) translateY(0);
             opacity: 1;
         }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans min-h-screen pb-24">
+<body class="bg-gray-100 font-sans text-gray-800 relative min-h-screen pb-12">
 
-    <div id="ptr-indicator" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white shadow-md rounded-full px-4 py-1.5 text-xs font-bold text-emerald-600 flex items-center gap-1.5 border border-emerald-100 pointer-events-none">
-        <i class="fa-solid fa-arrows-rotate animate-spin text-[10px]"></i> Memperbarui Data...
+    <div id="ptr-indicator" class="fixed top-16 left-0 right-0 z-50 flex justify-center pointer-events-none">
+        <div class="bg-white px-4 py-2 rounded-full shadow-lg border border-gray-100 flex items-center gap-2 text-xs font-semibold text-green-600">
+            <i class="fa-solid fa-arrows-rotate animate-spin"></i>
+            <span>Memperbarui data...</span>
+        </div>
     </div>
 
-    <header class="bg-emerald-600 text-white sticky top-0 z-40 shadow-md">
-        <div class="max-w-md mx-auto px-4 py-3.5 flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 bg-white/15 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/10">
-                    <i class="fa-solid fa-basket-shopping text-base text-amber-300"></i>
-                </div>
-                <div>
-                    <h1 class="text-base font-black tracking-tight leading-none">Grosir Bersama</h1>
-                    <p class="text-[10px] text-emerald-100 mt-0.5 font-medium">Mega Katalog Belanja Online</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <button id="btn-pwa-install" class="hidden bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1">
-                    <i class="fa-solid fa-cloud-arrow-down"></i> Install App
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-gray-800 flex items-center gap-2 cursor-pointer" onclick="setMode('semua')">
+                <i class="fa-solid fa-store text-green-600"></i> <span>Grosir Bersama</span>
+            </h1>
+            <div class="flex items-center gap-1">
+                <button id="btn-pwa-install" class="hidden text-[11px] bg-green-100 text-green-700 font-bold px-2.5 py-1.5 rounded-lg mr-1 flex items-center gap-1">
+                    <i class="fa-solid fa-download"></i> Instal Aplikasi
                 </button>
-                <button onclick="toggleModalToko()" class="w-9 h-9 bg-white/10 hover:bg-white/20 active:scale-95 transition rounded-xl flex items-center justify-center text-sm backdrop-blur-md border border-white/10" title="Pilih Mitra Toko">
-                    <i class="fa-solid fa-store"></i>
+                <button onclick="bukaKeranjang()" class="relative p-2 text-gray-600 hover:text-green-600 transition">
+                    <i class="fa-solid fa-basket-shopping text-2xl"></i>
+                    <span id="badge-keranjang" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <section id="banner-toko-aktif" class="hidden bg-gradient-to-r from-emerald-700 to-emerald-800 text-white border-t border-emerald-500/30">
-        <div class="max-w-md mx-auto p-4 flex flex-col gap-2 relative">
-            <div class="flex justify-between items-start">
-                <div class="max-w-[75%]">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <h2 id="nama-toko-header" class="text-base font-black tracking-tight">Nama Toko</h2>
-                        <span id="badge-status-toko" class="text-[9px] bg-white/20 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">BUKA</span>
+    <main class="max-w-4xl mx-auto px-4 py-6">
+        <div class="mb-6">
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400"></i>
+                <input type="text" id="search-input" oninput="filterProduk()" placeholder="Cari produk terlaris lintas toko..." class="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:border-green-500 text-sm">
+            </div>
+        </div>
+
+        <div class="flex gap-2 mb-6">
+            <button id="btn-mode-semua" onclick="setMode('semua')" class="px-4 py-2 text-xs font-semibold rounded-full bg-green-600 text-white shadow-sm transition">Semua Toko</button>
+            <button id="btn-mode-toko" onclick="setMode('toko')" class="px-4 py-2 text-xs font-semibold rounded-full bg-gray-200 text-gray-700 shadow-sm transition">Toko Ini</button>
+        </div>
+
+        <div class="flex gap-2 overflow-x-auto pb-3 mb-6 scrollbar-hide" id="container-kategori">
+            <button onclick="filterKategori('Semua')" class="category-btn active shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                🏠 Semua
+            </button>
+            <button onclick="filterKategori('Favorit')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2 text-red-500">
+                ❤️ Favorit Saya
+            </button>
+            <button onclick="filterKategori('Makanan & Minuman')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                🍲 Makanan & Minuman
+            </button>
+            <button onclick="filterKategori('Sembako')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                🍚 Sembako & Kebutuhan Harian
+            </button>
+            <button onclick="filterKategori('Fashion')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                👕 Fashion
+            </button>
+            <button onclick="filterKategori('Rumah Tangga')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                🧹 Rumah Tangga
+            </button>
+            <button onclick="filterKategori('Elektronik')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                ⚡ Elektronik
+            </button>
+            <button onclick="filterKategori('Kesehatan')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                💊 Kesehatan & Kecantikan
+            </button>
+            <button onclick="filterKategori('Jasa')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                🛠️ Jasa
+            </button>
+            <button onclick="filterKategori('Perlengkapan')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                📦 Perlengkapan Usaha & Kemasan
+            </button>
+            <button onclick="filterKategori('Pendidikan')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                📚 Pendidikan
+            </button>
+            <button onclick="filterKategori('Otomotif')" class="category-btn shrink-0 px-4 py-2 bg-white text-gray-700 text-xs font-medium rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                🚗 Otomotif
+            </button>
+            <button id="btn-pilih-toko" onclick="toggleModalToko()" class="shrink-0 px-4 py-2 bg-amber-500 text-white text-xs font-semibold rounded-xl shadow-sm flex items-center gap-2">
+                🏪 Pilih Toko 📇
+            </button>
+        </div>
+
+        <div id="banner-toko-aktif" class="mb-6 bg-gradient-to-r from-green-700 to-emerald-600 rounded-2xl p-5 text-white shadow-sm hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="space-y-1 w-full">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">Mitra Toko Terpilih</span>
+                        <span id="badge-status-toko" class="text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider">Buka</span>
                     </div>
-                    <p id="detail-toko-header" class="text-[11px] text-emerald-100 mt-1 flex flex-wrap gap-x-2 gap-y-0.5 opacity-90"></p>
-                </div>
-                <button onclick="setMode('semua')" class="text-xs bg-white/10 hover:bg-white/20 active:scale-95 transition text-white px-2.5 py-1 rounded-lg border border-white/10 font-medium">
-                    <i class="fa-solid fa-xmark"></i> Keluar
-                </button>
-            </div>
+                    <h2 id="nama-toko-header" class="text-xl font-bold">Nama Toko</h2>
+                    <p id="detail-toko-header" class="text-xs text-green-100"><i class="fa-solid fa-clock"></i> Jam Buka | <i class="fa-solid fa-location-dot"></i> Alamat</p>
+                    
+                    <div class="grid grid-cols-2 gap-2 pt-2 text-[11px] text-green-50 max-w-md border-t border-white/10 mt-2">
+                        <div><i class="fa-solid fa-truck-drop-off text-amber-300"></i> Layanan Antar: <span id="info-layanan-antar" class="font-bold">-</span></div>
+                        <div><i class="fa-solid fa-hand-holding-dollar text-amber-300"></i> Ket. Ongkir: <span id="info-ongkir" class="font-bold">-</span></div>
+                        <div class="col-span-2"><i class="fa-solid fa-circle-minus text-amber-300"></i> Syarat Min. Kirim: <span id="info-min-kirim" class="font-bold">-</span></div>
+                    </div>
 
-            <div class="grid grid-cols-3 gap-2 bg-black/15 p-2 rounded-xl text-center border border-white/5 mt-1">
-                <div>
-                    <div class="text-[9px] uppercase tracking-wider text-emerald-200 font-bold">Layanan Antar</div>
-                    <div id="info-layanan-antar" class="text-xs font-black mt-0.5 truncate">-</div>
-                </div>
-                <div class="border-x border-white/10 px-1">
-                    <div class="text-[9px] uppercase tracking-wider text-emerald-200 font-bold">Tarif Ongkir</div>
-                    <div id="info-ongkir" class="text-xs font-black mt-0.5 truncate">-</div>
-                </div>
-                <div>
-                    <div class="text-[9px] uppercase tracking-wider text-emerald-200 font-bold">Batas Min. Kirim</div>
-                    <div id="info-min-kirim" class="text-xs font-black mt-0.5 truncate">-</div>
-                </div>
-            </div>
+                    <div id="wrapper-catatan-toko" class="mt-2 text-[11px] bg-black/10 p-2 rounded-lg text-emerald-100 hidden">
+                        <i class="fa-solid fa-bullhorn text-amber-300"></i> <span id="info-catatan-toko">-</span>
+                    </div>
 
-            <div id="container-tombol-maps" class="mt-0.5"></div>
-
-            <div id="wrapper-catatan-toko" class="hidden text-[10px] bg-amber-500/20 text-amber-200 border border-amber-500/30 p-2 rounded-lg mt-0.5">
-                <span class="font-bold"><i class="fa-solid fa-circle-exclamation"></i> Pengumuman:</span> <span id="info-catatan-toko"></span>
+                    <div id="container-tombol-maps" class="mt-2"></div>
+                </div>
+                <button onclick="setMode('semua')" class="text-xs bg-white text-green-700 font-bold px-3 py-1.5 rounded-lg shadow-sm hover:bg-green-50 self-start md:self-auto shrink-0">Kembali ke Pusat</button>
             </div>
         </div>
-    </section>
 
-    <main class="max-w-md mx-auto px-4 mt-4 flex flex-col gap-4">
-        
-        <div class="flex items-center gap-2 bg-gray-200/60 p-1 rounded-xl border border-gray-200/30">
-            <button id="btn-mode-semua" onclick="setMode('semua')" class="flex-1 py-2 text-xs font-bold rounded-lg bg-green-600 text-white shadow-xs transition-all duration-200">
-                <i class="fa-solid fa-globe"></i> Semua Produk
-            </button>
-            <button id="btn-mode-toko" onclick="toggleModalToko()" class="flex-1 py-2 text-xs font-bold rounded-lg text-gray-600 hover:bg-white/50 transition-all duration-200">
-                <i class="fa-solid fa-store"></i> Pilih Mitra Toko
-            </button>
-        </div>
-
-        <div class="relative">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-            <input type="text" id="search-input" oninput="filterProduk()" placeholder="Cari nama barang atau deskripsi..." class="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition shadow-xs">
-        </div>
-
-        <div class="flex gap-1.5 overflow-x-auto scrollbar-hide py-1 -mx-4 px-4 sticky top-[65px] bg-gray-50 z-30">
-            <button onclick="filterKategori('Semua')" class="category-btn active shrink-0 px-3.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 shadow-2xs hover:bg-gray-50 active:scale-95 transition">Semua</button>
-            <button onclick="filterKategori('Favorit')" class="category-btn shrink-0 px-3.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 shadow-2xs hover:bg-gray-50 active:scale-95 transition text-red-500"><i class="fa-solid fa-heart"></i> Terfavorit</button>
-            <button onclick="filterKategori('Makanan & Minuman')" class="category-btn shrink-0 px-3.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 shadow-2xs hover:bg-gray-50 active:scale-95 transition">☕ Makanan & Minuman</button>
-            <button onclick="filterKategori('Sembako')" class="category-btn shrink-0 px-3.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 shadow-2xs hover:bg-gray-50 active:scale-95 transition">🌾 Sembako</button>
-            <button onclick="filterKategori('Fashion')" class="category-btn shrink-0 px-3.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 shadow-2xs hover:bg-gray-50 active:scale-95 transition">👕 Fashion</button>
-            <button onclick="filterKategori('Rumah Tangga')" class="category-btn shrink-0 px-3.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 shadow-2xs hover:bg-gray-50 active:scale-95 transition">🛋️ Rumah Tangga</button>
-            <button onclick="filterKategori('Elektronik')" class="category-btn shrink-0 px-3.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 shadow-2xs hover:bg-gray-50 active:scale-95 transition">🔌 Elektronik</button>
-            <button onclick="filterKategori('Kesehatan')" class="category-btn shrink-0 px-3.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 shadow-2xs hover:bg-gray-50 active:scale-95 transition">💄 Kesehatan & Kecantikan</button>
-            <button onclick="filterKategori('Perlengkapan')" class="category-btn shrink-0 px-3.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 shadow-2xs hover:bg-gray-50 active:scale-95 transition">📦 Perlengkapan & Kemasan</button>
-            <button onclick="filterKategori('Otomotif')" class="category-btn shrink-0 px-3.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 shadow-2xs hover:bg-gray-50 active:scale-95 transition">🏍️ Otomotif</button>
-            <button onclick="filterKategori('Pendidikan')" class="category-btn shrink-0 px-3.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 shadow-2xs hover:bg-gray-50 active:scale-95 transition">📚 Pendidikan</button>
-            <button onclick="filterKategori('Jasa')" class="category-btn shrink-0 px-3.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 shadow-2xs hover:bg-gray-50 active:scale-95 transition">🛠️ Jasa / Layanan</button>
-        </div>
-
-        <div id="grid-produk" class="grid grid-cols-2 gap-3.5">
-            </div>
+        <div id="grid-produk" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
     </main>
 
-    <div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 z-40 shadow-xl">
-        <div class="max-w-md mx-auto px-6 py-2 flex items-center justify-between">
-            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="flex flex-col items-center gap-1 text-gray-400 hover:text-emerald-600 transition">
-                <i class="fa-solid fa-house text-base"></i>
-                <span class="text-[10px] font-medium">Beranda</span>
-            </button>
-            
-            <button onclick="bukaKeranjang()" class="relative -translate-y-4 w-14 h-14 bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-emerald-700 active:scale-95 transition border-4 border-white" title="Lihat Keranjang Nota">
-                <i class="fa-solid fa-file-invoice text-lg"></i>
-                <span id="badge-inter-keranjang" class="absolute -top-1.5 -right-1.5 bg-amber-500 text-white text-[10px] font-black w-5 h-5 rounded-full items-center justify-center border-2 border-white flex hidden">0</span>
-                <span id="badge-keranjang" class="absolute -top-1.5 -right-1.5 bg-amber-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white hidden">0</span>
-            </button>
+    <footer class="text-center py-8 text-xs text-gray-400 mt-12 border-t border-gray-200">
+        <p>&copy; 2026 Grosir Bersama Platform Agregator Lokal.</p>
+    </footer>
 
-            <button onclick="toggleModalToko()" class="flex flex-col items-center gap-1 text-gray-400 hover:text-emerald-600 transition">
-                <i class="fa-solid fa-store text-base"></i>
-                <span class="text-[10px] font-medium">Mitra Toko</span>
-            </button>
-        </div>
-    </div>
-
-    <div id="modal-toko" class="fixed inset-0 bg-black/50 z-50 flex items-end justify-center opacity-0 hidden transition-opacity duration-300" onclick="toggleModalToko()">
-        <div class="bg-white w-full max-w-md rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto transform translate-y-full transition-transform duration-300" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center pb-3 border-b border-gray-100 mb-4">
-                <div>
-                    <h3 class="font-black text-gray-800 text-sm flex items-center gap-1.5"><i class="fa-solid fa-store text-emerald-600"></i> Pilih Mitra Grosir</h3>
-                    <p class="text-[10px] text-gray-400 mt-0.5">Silakan pilih salah satu toko mitra terdekat Anda</p>
-                </div>
-                <button onclick="toggleModalToko()" class="w-7 h-7 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div id="daftar-toko-list" class="flex flex-col gap-2.5">
-                </div>
-        </div>
-    </div>
-
-    <div id="modal-detail" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 opacity-0 hidden transition-opacity duration-300" onclick="tutupModalDetail()">
-        <div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden p-5 shadow-2xl transform scale-95 transition-transform duration-300 relative flex flex-col gap-3" onclick="event.stopPropagation()">
-            <button onclick="tutupModalDetail()" class="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs z-10 transition">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            
-            <div class="w-full h-48 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 relative overflow-hidden">
+    <div id="modal-detail" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-xl transform scale-95 transition-transform duration-300">
+            <div class="relative h-64 bg-gray-100 flex items-center justify-center">
                 <img id="modal-detail-img" src="" class="w-full h-full object-cover hidden">
-                <i id="modal-detail-placeholder" class="fa-solid fa-image text-4xl"></i>
-                <span id="modal-detail-toko" class="absolute bottom-3 left-3 bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-md shadow-xs">Nama Mitra</span>
+                <div id="modal-detail-placeholder" class="text-gray-300 text-5xl"><i class="fa-solid fa-image"></i></div>
+                <button onclick="tutupModalDetail()" class="absolute top-3 right-3 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold z-10">&times;</button>
             </div>
-
-            <div class="flex justify-between items-start gap-2 mt-1">
-                <h3 id="modal-detail-nama" class="font-black text-gray-900 text-base leading-snug">Nama Produk</h3>
-                <button id="btn-modal-wishlist" class="text-gray-300 text-lg hover:text-red-500 transition"><i class="fa-regular fa-heart"></i></button>
-            </div>
-
-            <div id="modal-detail-harga" class="text-emerald-600 font-black text-base">Rp0</div>
-            
-            <div class="border-t border-gray-100 pt-2">
-                <div class="text-[10px] uppercase font-bold tracking-wider text-gray-400 mb-1">Deskripsi Produk:</div>
-                <p id="modal-detail-deskripsi" class="text-xs text-gray-500 leading-relaxed max-h-24 overflow-y-auto pr-1">Keterangan deskripsi produk...</p>
-            </div>
-
-            <div id="modal-detail-action-container" class="flex gap-2 border-t border-gray-100 pt-3 mt-1">
+            <div class="p-5">
+                <div class="flex justify-between items-start gap-2">
+                    <span id="modal-detail-toko" class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded font-bold">Nama Toko</span>
+                    <button id="btn-modal-wishlist" class="text-gray-400 text-lg hover:text-red-500 transition"><i class="fa-regular fa-heart"></i></button>
                 </div>
+                <h3 id="modal-detail-nama" class="font-bold text-gray-900 text-lg mt-2">Nama Produk</h3>
+                <div id="modal-detail-harga" class="text-green-600 font-black text-xl mt-1">Rp0</div>
+                <hr class="my-3 border-gray-100">
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Deskripsi Produk</h4>
+                <p id="modal-detail-deskripsi" class="text-sm text-gray-600 mt-1 max-h-32 overflow-y-auto pr-1">Isi deskripsi panjang produk disini...</p>
+                <div class="mt-5 flex gap-2" id="modal-detail-action-container"></div>
+            </div>
         </div>
     </div>
 
-    <div id="modal-keranjang" class="fixed inset-0 bg-black/50 z-50 flex items-end justify-center opacity-0 hidden transition-opacity duration-300" onclick="bukaKeranjang()">
-        <div class="bg-white w-full max-w-md rounded-t-2xl p-5 max-h-[90vh] overflow-y-auto transform translate-y-full transition-transform duration-300 flex flex-col" onclick="event.stopPropagation()">
-            
-            <div class="flex justify-between items-center pb-3 border-b border-gray-100 mb-3">
-                <div>
-                    <h3 class="font-black text-gray-800 text-sm flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar text-emerald-600"></i> Nota Keranjang Belanja</h3>
-                    <p class="text-[10px] text-gray-400 mt-0.5">Daftar pesanan barang belanjaan Anda</p>
-                </div>
-                <button onclick="bukaKeranjang()" class="w-7 h-7 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+    <div id="modal-toko" class="fixed inset-0 bg-black/50 z-50 flex items-end justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-md rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto transform translate-y-full transition-transform duration-300">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-gray-800">Pilih Mitra Toko</h3>
+                <button onclick="toggleModalToko()" class="text-gray-400 text-xl">&times;</button>
+            </div>
+            <div id="daftar-toko-list" class="space-y-3"></div>
+        </div>
+    </div>
+
+    <div id="modal-keranjang" class="fixed inset-0 bg-black/50 z-50 flex items-end justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-md rounded-t-2xl p-5 max-h-[90vh] overflow-y-auto transform translate-y-full transition-transform duration-300">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                <h3 class="font-bold text-gray-900 text-base flex items-center gap-2"><i class="fa-solid fa-basket-shopping text-green-600"></i> Keranjang Nota Belanja</h3>
+                <button onclick="bukaKeranjang()" class="text-gray-400 text-2xl">&times;</button>
             </div>
 
-            <div class="bg-gray-50 border border-gray-100 p-3 rounded-xl mb-3 flex flex-col gap-2">
-                <p class="font-bold text-xs text-gray-700 flex items-center gap-1"><i class="fa-solid fa-user-pen text-emerald-600 text-[11px]"></i> Formulir Data Kirim Pelanggan:</p>
-                <div class="grid grid-cols-2 gap-2">
-                    <input type="text" id="cust-nama" oninput="simpanBiodataLokal()" placeholder="Nama Penerima..." class="bg-white border border-gray-200 text-xs px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500">
-                    <input type="tel" id="cust-telp" oninput="simpanBiodataLokal()" placeholder="No. WA Aktif..." class="bg-white border border-gray-200 text-xs px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500">
-                </div>
-                <input type="text" id="cust-alamat" oninput="simpanBiodataLokal()" placeholder="Alamat Lengkap Pengiriman..." class="bg-white border border-gray-200 text-xs px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500 w-full">
+            <div class="bg-gray-50 rounded-xl p-3 mb-4 border border-gray-200 space-y-2.5">
+                <div class="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1"><i class="fa-solid fa-user-pen"></i> Data Pengiriman Pelanggan</div>
+                <input type="text" id="cust-nama" oninput="simpanBiodataLokal()" placeholder="Nama Lengkap Anda..." class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-green-500">
+                <input type="tel" id="cust-telp" oninput="simpanBiodataLokal()" placeholder="Nomor WhatsApp (Contoh: 08123...)" class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-green-500">
+                <textarea id="cust-alamat" oninput="simpanBiodataLokal()" rows="2" placeholder="Alamat Pengiriman Lengkap..." class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-green-500"></textarea>
             </div>
 
-            <div id="info-toko-di-keranjang" class="hidden text-[10px] bg-amber-500/10 border border-amber-500/20 text-amber-800 p-2.5 rounded-xl mb-3"></div>
+            <div id="info-toko-di-keranjang" class="text-[11px] bg-amber-50 text-amber-800 border border-amber-200 p-2.5 rounded-xl mb-3 hidden"></div>
 
-            <div id="keranjang-items-list" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
-                </div>
+            <div id="keranjang-items-list" class="space-y-2 mb-4 max-h-42 overflow-y-auto"></div>
 
-            <div class="border-t border-gray-100 pt-3 mt-3 space-y-1.5 text-xs text-gray-600 font-medium">
+            <div class="border-t border-gray-100 pt-3 space-y-1.5 text-xs text-gray-600 mb-4">
+                <div class="flex justify-between"><span>Total Item Barang:</span><span id="nota-total-qty" class="font-bold text-gray-900">0</span></div>
+                <div class="flex justify-between"><span>Subtotal Belanja:</span><span id="nota-subtotal-harga" class="font-bold text-gray-900">Rp0</span></div>
                 <div class="flex justify-between">
-                    <span>Total Kuantitas Item:</span>
-                    <span id="nota-total-qty" class="font-bold text-gray-800">0</span>
+                    <span>Ongkos Kirim Toko:</span>
+                    <div class="text-right">
+                        <span id="nota-ongkir-harga" class="font-bold text-gray-900">Rp0</span>
+                        <div id="badge-status-ongkir" class="text-[9px] text-amber-600 font-medium block"></div>
+                    </div>
                 </div>
-                <div class="flex justify-between">
-                    <span>Subtotal Barang:</span>
-                    <span id="nota-subtotal-harga" class="font-bold text-gray-800">Rp0</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span>Ongkos Kirim <span id="badge-status-ongkir" class="text-[10px] text-emerald-600 font-semibold"></span>:</span>
-                    <span id="nota-ongkir-harga" class="font-bold text-gray-800">Rp0</span>
-                </div>
-                <div class="flex justify-between border-t border-dashed border-gray-200 pt-2 text-sm">
-                    <span class="font-black text-gray-900">Total Tagihan:</span>
-                    <span id="nota-total-harga" class="font-black text-emerald-600 text-base">Rp0</span>
-                </div>
+                <div class="flex justify-between text-sm text-gray-900 font-black border-t border-dashed border-gray-200 pt-2 text-base"><span>Total Pembayaran:</span><span id="nota-total-harga" class="text-green-600">Rp0</span></div>
             </div>
 
-            <div class="grid grid-cols-3 gap-2 mt-4">
-                <button onclick="salinNotaTeks()" class="py-2.5 border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1">
-                    <i class="fa-regular fa-copy"></i> Salin Nota
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="salinNotaTeks()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 border border-gray-200">
+                    <i class="fa-solid fa-copy"></i> Salin Nota Teks
                 </button>
-                <button onclick="kirimWhatsApp()" class="col-span-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1.5">
-                    <i class="fa-brands fa-whatsapp text-sm"></i> Kirim ke WhatsApp Toko
+                <button onclick="kirimWhatsApp()" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-md">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> Kirim ke WhatsApp
                 </button>
             </div>
-
         </div>
     </div>
 
@@ -361,12 +335,11 @@
                     idProduk: b.c[1] ? b.c[1].v.toString().trim() : '',
                     nama: b.c[2] ? b.c[2].v : '',
                     kategori: b.c[3] ? b.c[3].v : '',
-                    hargaTeks: b.c[4] ? b.c[4].v.toString().trim() : '0',
-                    harga: b.c[4] ? (isNaN(Number(b.c[4].v)) ? 0 : Number(b.c[4].v)) : 0,
+                    harga: b.c[4] ? Number(b.c[4].v) : 0,
                     satuan: b.c[5] ? b.c[5].v : 'pcs',
                     gambar: b.c[6] ? b.c[6].v : '',
                     deskripsi: b.c[7] ? b.c[7].v : ''
-                })).filter(p => p.idProduk !== 'ID_Produk' && p.idProduk !== '');
+                })).filter(p => p.idToko !== 'ID_Toko' && p.idToko !== '');
                 renderProduk();
             } catch (err) { console.error("Gagal memuat Semua_Produk:", err); }
         }
@@ -396,14 +369,8 @@
         }
 
         function kalkulasiOngkirToko(infoToko, subtotalBelanja) {
-            let hasil = { nominal: 0, status: 'Tidak Ada / Ambil Sendiri' };
+            let hasil = { nominal: 0, status: 'Tidak Ada / Ambil Sendiri', pemicuAnti: '' };
             if (!infoToko) return hasil;
-
-            if (infoToko.ongkir && infoToko.ongkir.toString().toLowerCase().includes('chat wa')) {
-                hasil.nominal = 0;
-                hasil.status = 'Dihitung via Chat WA';
-                return hasil;
-            }
 
             let ongkirDasar = Number(infoToko.ongkir.toString().replace(/[^0-9]/g, '')) || 0;
             hasil.nominal = ongkirDasar;
@@ -548,10 +515,7 @@
                         <p class="text-[11px] text-gray-400 mb-2 line-clamp-2">${p.deskripsi || 'Klik untuk lihat detail deskripsi...'}</p>
                     </div>
                     <div>
-                        <div class="text-green-600 font-extrabold text-sm mb-2">
-                            ${isNaN(Number(p.hargaTeks)) ? p.hargaTeks : 'Rp' + p.harga.toLocaleString('id-ID')}
-                            <span class="text-gray-400 font-normal text-xs"> / ${p.satuan}</span>
-                        </div>
+                        <div class="text-green-600 font-extrabold text-sm mb-2">Rp${p.harga.toLocaleString('id-ID')}<span class="text-gray-400 font-normal text-xs"> / ${p.satuan}</span></div>
                         ${htmlTombol}
                     </div>
                 </div>
@@ -561,7 +525,7 @@
 
         function bagikanProdukSpesifik(nama, harga, idToko) {
             const linkAplikasi = window.location.href.split('?')[0].split('#')[0];
-            const teksShare = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${BC_Harga.toLocaleString('id-ID')}*\n\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}`;
+            const teksShare = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${Number(harga).toLocaleString('id-ID')}*\n\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}`;
             const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(teksShare)}`;
             window.open(urlWA, '_blank');
         }
@@ -576,7 +540,7 @@
 
             document.getElementById('modal-detail-toko').textContent = infoToko ? infoToko.nama : p.idToko;
             document.getElementById('modal-detail-nama').textContent = p.nama;
-            document.getElementById('modal-detail-harga').textContent = isNaN(Number(p.hargaTeks)) ? p.hargaTeks : `Rp${p.harga.toLocaleString('id-ID')} / ${p.satuan}`;
+            document.getElementById('modal-detail-harga').textContent = `Rp${p.harga.toLocaleString('id-ID')} / ${p.satuan}`;
             document.getElementById('modal-detail-deskripsi').textContent = p.deskripsi || 'Tidak ada deskripsi produk secara spesifik.';
             
             const img = document.getElementById('modal-detail-img');
@@ -751,15 +715,12 @@
             const infoToko = databaseToko.find(t => t.id === idToko);
             let subtotalHarga = 0;
             Object.keys(keranjang).forEach(id => {
-                const p = databaseProduk.find(prod => prod.idProduk === id);
+                const p = databaseProduk.find(prod => prod.idProd === id);
                 if (p) subtotalHarga += p.harga * keranjang[id];
             });
 
             let cekOngkir = kalkulasiOngkirToko(infoToko, subtotalHarga);
-            let nominalTeks = (infoToko && infoToko.ongkir && infoToko.ongkir.toString().toLowerCase().includes('chat wa')) 
-                ? "Dihitung via WA" 
-                : (cekOngkir.nominal === 0 ? "Gratis!" : `Rp${cekOngkir.nominal.toLocaleString('id-ID')}`);
-            
+            let nominalTeks = cekOngkir.nominal === 0 ? "Gratis!" : `Rp${cekOngkir.nominal.toLocaleString('id-ID')}`;
             tampilkanNotifikasiOngkir(`Barang dimasukkan! Ongkir saat ini: ${nominalTeks}`);
         }
 
@@ -818,7 +779,7 @@
             });
 
             let htmlEdukasiPromo = '';
-            if (infoToko && !infoToko.ongkir.toString().toLowerCase().includes('chat wa')) {
+            if (infoToko) {
                 if (infoToko.minFree && subtotalHarga < infoToko.minFree) {
                     let sisaFree = infoToko.minFree - subtotalHarga;
                     htmlEdukasiPromo = `<div class="bg-emerald-50 text-emerald-800 p-2.5 rounded-xl text-xs font-semibold mb-3 flex items-center gap-2 border border-emerald-100">
@@ -837,7 +798,7 @@
             let htmlSelesai = htmlEdukasiPromo + `<div class="space-y-3">`;
 
             htmlSelesai += Object.keys(keranjang).map(id => {
-                const p = databaseProduk.find(prod => prod.idProd === id || prod.idProduk === id);
+                const p = databaseProduk.find(prod => prod.idProduk === id);
                 if (!p) return '';
                 const sub = p.harga * keranjang[id];
 
@@ -845,7 +806,7 @@
                 <div class="flex justify-between items-center bg-gray-50 border border-gray-100 p-2.5 rounded-xl">
                     <div class="max-w-[60%]">
                         <div class="font-bold text-gray-800 text-xs truncate">${p.nama}</div>
-                        <div class="text-[10px] text-gray-500">${isNaN(Number(p.hargaTeks)) ? p.hargaTeks : 'Rp' + p.harga.toLocaleString('id-ID')} / ${p.satuan}</div>
+                        <div class="text-[10px] text-gray-500">Rp${p.harga.toLocaleString('id-ID')} / ${p.satuan}</div>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="flex items-center border border-gray-200 rounded-lg bg-white overflow-hidden">
@@ -867,15 +828,9 @@
 
             document.getElementById('nota-total-qty').textContent = totalQty;
             document.getElementById('nota-subtotal-harga').textContent = `Rp${subtotalHarga.toLocaleString('id-ID')}`;
-            
-            if (infoToko && infoToko.ongkir.toString().toLowerCase().includes('chat wa')) {
-                document.getElementById('nota-ongkir-harga').textContent = "WA";
-                document.getElementById('nota-total-harga').textContent = `Rp${subtotalHarga.toLocaleString('id-ID')} + WA`;
-            } else {
-                document.getElementById('nota-ongkir-harga').textContent = `Rp${dataOngkir.nominal.toLocaleString('id-ID')}`;
-                document.getElementById('nota-total-harga').textContent = `Rp${totalAkhir.toLocaleString('id-ID')}`;
-            }
+            document.getElementById('nota-ongkir-harga').textContent = `Rp${dataOngkir.nominal.toLocaleString('id-ID')}`;
             document.getElementById('badge-status-ongkir').textContent = `(${dataOngkir.status})`;
+            document.getElementById('nota-total-harga').textContent = `Rp${totalAkhir.toLocaleString('id-ID')}`;
         }
 
         function buatTeksNota() {
@@ -911,15 +866,8 @@
 
             teks += `-----------------------------------------\n`;
             teks += `*SUBTOTAL:* Rp${subtotal.toLocaleString('id-ID')}\n`;
-            
-            if (infoToko && infoToko.ongkir.toString().toLowerCase().includes('chat wa')) {
-                teks += `*ONGKOS KIRIM:* Dihitung Manual via Chat WA\n`;
-                teks += `*TOTAL PEMBAYARAN:* Rp${subtotal.toLocaleString('id-ID')} (Belum Termasuk Ongkir)\n`;
-            } else {
-                teks += `*ONGKOS KIRIM:* Rp${dataOngkir.nominal.toLocaleString('id-ID')} (${dataOngkir.status})\n`;
-                teks += `*TOTAL PEMBAYARAN:* Rp${totalAkhir.toLocaleString('id-ID')}\n`;
-            }
-            
+            teks += `*ONGKOS KIRIM:* Rp${dataOngkir.nominal.toLocaleString('id-ID')} (${dataOngkir.status})\n`;
+            teks += `*TOTAL PEMBAYARAN:* Rp${totalAkhir.toLocaleString('id-ID')}\n`;
             teks += `-----------------------------------------\n`;
             teks += `_Pesanan dibuat otomatis via Katalog Online Grosir Bersama_`;
             return teks;
@@ -978,8 +926,8 @@
             if (mode === 'semua') {
                 tokoTerpilih = null;
                 banner.classList.add('hidden');
-                btnSemua.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-green-600 text-white shadow-xs transition-all duration-200";
-                btnToko.className = "flex-1 py-2 text-xs font-bold rounded-lg text-gray-600 hover:bg-white/50 transition-all duration-200";
+                btnSemua.className = "px-4 py-2 text-xs font-semibold rounded-full bg-green-600 text-white shadow-sm transition";
+                btnToko.className = "px-4 py-2 text-xs font-semibold rounded-full bg-gray-200 text-gray-700 shadow-sm transition";
                 tampilkanSkeletonLoader();
                 await muatSemuaProduk();
             } else {
@@ -994,8 +942,8 @@
             const btnToko = document.getElementById('btn-mode-toko');
             const banner = document.getElementById('banner-toko-aktif');
             
-            btnSemua.className = "flex-1 py-2 text-xs font-bold rounded-lg text-gray-600 hover:bg-white/50 transition-all duration-200";
-            btnToko.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-green-600 text-white shadow-xs transition-all duration-200";
+            btnSemua.className = "px-4 py-2 text-xs font-semibold rounded-full bg-gray-200 text-gray-700 shadow-sm transition";
+            btnToko.className = "px-4 py-2 text-xs font-semibold rounded-full bg-green-600 text-white shadow-sm transition";
             
             const infoToko = databaseToko.find(t => t.id === idToko);
             if(infoToko) {
