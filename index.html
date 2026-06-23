@@ -1197,8 +1197,7 @@
                 alert("Gagal menyalin otomatis. Silakan salin langsung dari address bar browser Anda.");
             });
         }
-    </script>
-       // Fungsi ini otomatis berjalan saat web dibuka
+           // Fungsi ini otomatis berjalan saat web dibuka
         (function periksaWaktuKeranjang() {
             const jadwalHapus = localStorage.getItem('jadwal_hapus_keranjang');
             if (jadwalHapus) {
@@ -1216,5 +1215,8 @@ function catatKlikProduk(idProduk) {
     localStorage.setItem('riwayat_klik', JSON.stringify(dataKlik));
 } 
         })();
+        
+    </script>
+    
 </body>
 </html>
