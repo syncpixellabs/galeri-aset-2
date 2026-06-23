@@ -1016,17 +1016,29 @@
             let nomorWA = infoToko.wa.replace(/[^0-9]/g, '');
             if (nomorWA.startsWith('0')) nomorWA = '62' + nomorWA.slice(1);
 
-            // DETEKSI PERANGKAT: Apakah pengguna pakai HP (Mobile) atau Laptop (Desktop)
+            // Deteksi perangkat HP atau Laptop
             const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
+            // KUNCI UTAMA: Buka WA langsung tanpa memicu pilihan browser
             if (isMobile) {
-                // Trik Terbaik untuk HP: Gunakan wa.me tetapi paksa buka di jendela yang sama (self) 
-                // Ini akan langsung memicu sistem HP membuka aplikasi WA tanpa memunculkan pilihan browser.
+                // Untuk HP: Paksa ganti halaman di jendela yang sama (Tanpa _blank) agar langsung lari ke aplikasi WA
                 window.location.href = `https://wa.me/${nomorWA}?text=${teksNota}`;
             } else {
-                // Jika dibuka dari Laptop/PC, buka tab baru ke WhatsApp Web/Desktop resmi
+                // Untuk Laptop/PC: Buka tab baru ke WA Web
                 window.open(`https://web.whatsapp.com/send?phone=${nomorWA}&text=${teksNota}`, '_blank');
             }
+
+            // FITUR TAMBAHAN: Kosongkan keranjang otomatis setelah 1 jam (1 jam = 3.600.000 milidetik)
+            setTimeout(() => {
+                if(typeof kosongkanKeranjang === "function") {
+                    kosongkanKeranjang();
+                    // Jika modal keranjang masih terbuka, kita tutup otomatis
+                    const modalKeranjang = document.getElementById('modal-keranjang');
+                    if (modalKeranjang && !modalKeranjang.classList.contains('hidden')) {
+                        bukaKeranjang();
+                    }
+                }
+            }, 3600000); 
         }
 
         function simpanBiodataLokal() {
