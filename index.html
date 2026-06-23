@@ -213,9 +213,17 @@
     <div id="modal-keranjang" class="fixed inset-0 bg-black/50 z-50 flex items-end justify-center hidden opacity-0 transition-opacity duration-300">
         <div class="bg-white w-full max-w-md rounded-t-2xl p-5 max-h-[90vh] overflow-y-auto transform translate-y-full transition-transform duration-300">
             <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                <h3 class="font-bold text-gray-900 text-base flex items-center gap-2"><i class="fa-solid fa-basket-shopping text-green-600"></i> Keranjang Nota Belanja</h3>
-                <button onclick="bukaKeranjang()" class="text-gray-400 text-2xl">&times;</button>
-            </div>
+    <h3 class="font-bold text-gray-900 text-base flex items-center gap-2">
+        <i class="fa-solid fa-basket-shopping text-green-600"></i> Keranjang Nota Belanja
+    </h3>
+    <div class="flex items-center gap-3">
+        <!-- Tombol Kosongkan Baru -->
+        <button onclick="kosongkanKeranjang()" class="text-red-500 hover:text-red-700 text-xs font-semibold flex items-center gap-1 cursor-pointer transition" title="Kosongkan semua item">
+            <i class="fa-solid fa-trash-can"></i> Kosongkan
+        </button>
+        <button onclick="bukaKeranjang()" class="text-gray-400 text-2xl">&times;</button>
+    </div>
+</div>
 
             <div class="bg-gray-50 rounded-xl p-3 mb-4 border border-gray-200 space-y-2.5">
                 <div class="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1"><i class="fa-solid fa-user-pen"></i> Data Pengiriman Pelanggan</div>
@@ -505,7 +513,7 @@
 
                     <div onclick="bukaModalDetail('${p.idProduk}')" class="cursor-pointer">
                         <div class="w-full h-32 bg-gray-50 rounded-xl mb-3 flex items-center justify-center text-gray-300 relative overflow-hidden">
-                            ${p.gambar ? `<img src="${p.gambar}" class="w-full h-full object-cover" loading="lazy">` : `<i class="fa-solid fa-image text-3xl"></i>`}
+                            ${p.gambar ? `<img src="${p.gambar}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\"text-center\"><i class=\"fa-solid fa-image text-3xl text-gray-300\"></i><span class=\"text-[10px] text-gray-400 block mt-1\">Foto tidak tersedia</span></div>';">` : `<div class="text-center"><i class="fa-solid fa-image text-3xl text-gray-300"></i><span class="text-[10px] text-gray-400 block mt-1">Foto belum tersedia</span></div>`}
                             <span class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md font-medium max-w-[80%] truncate">${namaTokoPajangan}</span>
                             <button onclick="bagikanProdukSpesifik('${p.nama}', '${p.harga}', '${p.idToko}', '${p.gambar || ''}'); event.stopPropagation();" class="absolute top-2 left-2 w-7 h-7 bg-white/90 backdrop-blur-xs text-gray-600 rounded-full flex items-center justify-center shadow-xs hover:bg-emerald-600 hover:text-white transition active:scale-90" title="Bagikan produk ini">
                                 <i class="fa-solid fa-share-nodes text-[10px]"></i>
@@ -771,7 +779,19 @@
             renderProduk();
             renderIsiKeranjang();
         }
-
+         function kosongkanKeranjang() {
+    if (Object.keys(keranjang).length === 0) return;
+    
+    let konfirmasi = confirm("Apakah Anda yakin ingin menghapus semua barang di keranjang belanja?");
+    if (konfirmasi) {
+        keranjang = {};
+        keranjangIdToko = null;
+        updateBadgeKeranjang();
+        renderProduk();
+        renderIsiKeranjang();
+        tampilkanNotifikasiOngkir("🛒 Keranjang telah dikosongkan.");
+    }
+}
         function updateBadgeKeranjang() {
             const total = Object.values(keranjang).reduce((a, b) => a + b, 0);
             const badge = document.getElementById('badge-keranjang');
