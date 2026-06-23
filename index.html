@@ -523,30 +523,52 @@
             }).join('');
         }
 
-        async function function bagikanProdukSpesifik(nama, harga, idToko, gambar) {
+        async function async function bagikanProdukSpesifik(nama, harga, idToko, gambar) {
     const linkAplikasi = window.location.href.split('?')[0].split('#')[0];
     const teksShare = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${Number(harga).toLocaleString('id-ID')}*\n\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}#/produk/${idToko}`;
 
-    // 1. Salin teks otomatis ke clipboard (Pasti Berhasil)
-    navigator.clipboard.writeText(teksShare).then(() => {
-        if (gambar && gambar.trim() !== '') {
-            alert("📝 TEKS NOTA BERHASIL DISALIN!\n\nLangkah selanjutnya:\n1. Klik OK, gambar produk akan terbuka di tab baru.\n2. Klik kanan / tahan gambar tersebut, lalu pilih 'SALIN GAMBAR' (Copy Image).\n3. Buka WhatsApp, lalu TEMPEL (Paste) di kolom chat.");
+    // Cek apakah HP mendukung fitur Berbagi File (Web Share API)
+    if (navigator.share && navigator.canShare && gambar && gambar.trim() !== '') {
+        try {
+            // 1. Ambil data gambar dari GitHub di latar belakang
+            const respon = await fetch(gambar);
+            const blobAsli = await respon.blob();
             
-            // 2. Buka link gambar di tab baru agar bisa disalin manual dengan aman oleh pengguna
-            window.open(gambar, '_blank');
-        } else {
-            alert("📝 Teks produk berhasil disalin!");
+            // 2. Trik Utama: Paksa ubah format gambar menjadi PNG agar didukung oleh WhatsApp/HP
+            const bitmap = await createImageBitmap(blobAsli);
+            const canvas = document.createElement('canvas');
+            canvas.width = bitmap.width;
+            canvas.height = bitmap.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(bitmap, 0, 0);
+            
+            // Konversi canvas menjadi file PNG asli
+            const blobPNG = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            const fileGambar = new File([blobPNG], 'produk.png', { type: 'image/png' });
+
+            // 3. Cek apakah file siap dibagikan
+            if (navigator.canShare({ files: [fileGambar] })) {
+                await navigator.share({
+                    files: [fileGambar],      // Gambarnya terlampir di sini
+                    title: nama,
+                    text: teksShare           // Teks otomatis jadi caption/tulisan di bawah gambar!
+                });
+                return; // Berhasil, stop sampai di sini
+            }
+        } catch (error) {
+            console.error("Gagal membagikan gambar langsung, beralih ke teks...", error);
         }
-        
-        // 3. Buka WhatsApp setelahnya
-        const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(teksShare)}`;
-        window.open(urlWA, '_blank');
-    }).catch(err => {
-        console.error("Gagal menyalin teks: ", err);
-        // Cadangan jika clipboard diblokir perangkat
-        const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(teksShare)}`;
-        window.open(urlWA, '_blank');
-    });
+    }
+
+    // CADANGAN: Jika dibuka via Laptop/PC yang tidak mendukung menu share HP, pakai cara lama (teks saja)
+    let teksCadangan = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${Number(harga).toLocaleString('id-ID')}*\n`;
+    if (gambar && gambar.trim() !== '') {
+        teksCadangan += `🖼️ Foto Produk: ${gambar.trim()}\n`;
+    }
+    teksCadangan += `\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}#/produk/${idToko}`;
+    
+    const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(teksCadangan)}`;
+    window.open(urlWA, '_blank');
 }
 
         function bukaModalDetail(idProduk) {
