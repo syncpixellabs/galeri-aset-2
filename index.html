@@ -79,9 +79,9 @@
                 <i class="fa-solid fa-store text-green-600"></i> <span>Grosir Bersama</span>
             </h1>
             <div class="flex items-center gap-1">
-                <button id="btn-pwa-install" class="hidden text-[11px] bg-green-100 text-green-700 font-bold px-2.5 py-1.5 rounded-lg mr-1 flex items-center gap-1">
-                    <i class="fa-solid fa-download"></i> Instal Aplikasi
-                </button>
+                <button id="btnInstal" style="display: none;" class="text-[11px] bg-green-600 text-white font-bold px-3 py-1.5 rounded-lg mr-1 flex items-center gap-1 cursor-pointer border-none shadow-sm">
+    <i class="fa-solid fa-download"></i> Instal Aplikasi
+</button>
                 <button onclick="bukaKeranjang()" class="relative p-2 text-gray-600 hover:text-green-600 transition">
                     <i class="fa-solid fa-basket-shopping text-2xl"></i>
                     <span id="badge-keranjang" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
@@ -743,28 +743,28 @@
         }
 
         function inisialisasiPWAInstall() {
-            let deferredPrompt;
-            const btnInstall = document.getElementById('btn-pwa-install');
-            
+            let delayedPrompt;
+            const btnInstal = document.getElementById('btnInstal');
+
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
-                deferredPrompt = e;
-                btnInstall.classList.remove('hidden');
+                delayedPrompt = e;
+                btnInstal.style.display = 'inline-flex';
             });
 
-            btnInstall.addEventListener('click', async () => {
-                if (!deferredPrompt) return;
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    btnInstall.classList.add('hidden');
+            btnInstal.addEventListener('click', async () => {
+                if (delayedPrompt) {
+                    delayedPrompt.prompt();
+                    const { outcome } = await delayedPrompt.userChoice;
+                    console.log(`Pilihan pengguna: ${outcome}`);
+                    delayedPrompt = null;
+                    btnInstal.style.display = 'none';
                 }
-                deferredPrompt = null;
             });
 
             window.addEventListener('appinstalled', () => {
-                btnInstall.classList.add('hidden');
-                deferredPrompt = null;
+                console.log('Aplikasi Grosir Bersama berhasil diinstal!');
+                btnInstal.style.display = 'none';
             });
         }
 
