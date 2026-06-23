@@ -1,4 +1,3 @@
-=== index.html ===
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -1202,7 +1201,9 @@
                 console.error("Gagal menyalin link: ", err);
                 alert("Gagal menyalin otomatis. Silakan salin langsung dari address bar browser Anda.");
             });
-             // Fungsi ini otomatis berjalan saat web dibuka
+        }
+    </script>
+       // Fungsi ini otomatis berjalan saat web dibuka
         (function periksaWaktuKeranjang() {
             const jadwalHapus = localStorage.getItem('jadwal_hapus_keranjang');
             if (jadwalHapus) {
@@ -1214,9 +1215,5 @@
                 }
             }
         })();
-        }
-    </script>
-      
 </body>
 </html>
-
