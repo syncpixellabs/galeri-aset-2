@@ -521,16 +521,16 @@
 
                     <div onclick="bukaModalDetail('${p.idProduk}')" class="cursor-pointer">
                         <div class="w-full h-32 bg-gray-50 rounded-xl mb-3 flex items-center justify-center text-gray-300 relative overflow-hidden">
-                            ${p.gambar ? 
-    `<img src="${p.gambar}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/400x400/f3f4f6/a3a3a3?text=Foto+Tidak+Tersedia';">` 
-    : 
-    `<div class="text-center text-gray-400"><i class="fa-solid fa-image text-2xl"></i><span class="text-[10px] block mt-1">Foto belum tersedia</span></div>`
-}
-                            <span class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md font-medium max-w-[80%] truncate">${namaTokoPajangan}</span>
-                            <button onclick="bagikanProdukSpesifik('${p.nama}', '${p.harga}', '${p.idToko}', '${p.gambar || ''}'); event.stopPropagation();" class="absolute top-2 left-2 w-7 h-7 bg-white/90 backdrop-blur-xs text-gray-600 rounded-full flex items-center justify-center shadow-xs hover:bg-emerald-600 hover:text-white transition active:scale-90" title="Bagikan produk ini">
-                                <i class="fa-solid fa-share-nodes text-[10px]"></i>
-                            </button>
-                        </div>
+    ${p.gambar ? 
+        `<img src="${p.gambar}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/400x400/f3f4f6/a3a3a3?text=Foto+Tidak+Tersedia';">` 
+        : 
+        `<div class="text-center text-gray-400"><i class="fa-solid fa-image text-2xl"></i><span class="text-[10px] block mt-1">Foto belum tersedia</span></div>`
+    }
+    <span class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md font-medium max-w-[80%] truncate">${namaTokoPajangan}</span>
+    <button onclick="bagikanProdukSpesifik('${p.nama}', '${p.harga}', '${p.idToko}', '${p.gambar || ''}'); event.stopPropagation();" class="absolute top-2 left-2 w-7 h-7 bg-white/90 backdrop-blur-xs text-gray-600 rounded-full flex items-center justify-center shadow-xs hover:bg-emerald-600 hover:text-white transition active:scale-90" title="Bagikan produk ini">
+        <i class="fa-solid fa-share-nodes text-[10px]"></i>
+    </button>
+</div>
                         <h4 class="font-bold text-gray-800 text-sm line-clamp-2 mb-1">${p.nama}</h4>
                         <p class="text-[11px] text-gray-400 mb-2 line-clamp-2">${p.deskripsi || 'Klik untuk lihat detail deskripsi...'}</p>
                     </div>
