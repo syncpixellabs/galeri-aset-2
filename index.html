@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-title" content="Grosir Bersama">
     
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajaFx/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .category-btn.active {
             background-color: #16a34a !important;
@@ -494,20 +494,7 @@
             const grid = document.getElementById('grid-produk');
             const kataKunci = queryPencarian.toLowerCase().trim().split(/\s+/).filter(k => k.length > 0);
 
-           // GANTI BAGIAN FILTER LAMA ANDA DENGAN INI:
-let produkFilter = databaseProduk.filter(p => {
-    const matchCat = kategoriAktif === 'Semua' || p.kategori === kategoriAktif;
-    const matchSearch = p.nama.toLowerCase().includes(pencarian.toLowerCase());
-    return matchCat && matchSearch;
-});
-
-// Tambahkan logika urutan berdasarkan riwayat (BAGIAN BARU)
-const riwayat = JSON.parse(localStorage.getItem('gb_riwayat_lihat')) || {};
-produkFilter.sort((a, b) => {
-    const scoreA = riwayat[a.idProduk] || 0;
-    const scoreB = riwayat[b.idProduk] || 0;
-    return scoreB - scoreA; 
-});
+            let produkFilter = databaseProduk.filter(p => {
                 let katSheet = p.kategori ? p.kategori.toLowerCase() : '';
                 let cocokKategori = false;
                 
@@ -626,19 +613,10 @@ produkFilter.sort((a, b) => {
             window.open(urlWA, '_blank');
         }
 
-        // GANTI DENGAN INI:
-function bukaModalDetail(idProduk) {
-    // Tambahkan pencatatan riwayat
-    let riwayat = JSON.parse(localStorage.getItem('gb_riwayat_lihat')) || {};
-    riwayat[idProduk] = (riwayat[idProduk] || 0) + 1;
-    localStorage.setItem('gb_riwayat_lihat', JSON.stringify(riwayat));
-
-    // Kode asli Anda tetap di sini
-    const p = databaseProduk.find(prod => prod.idProduk === idProduk);
-    if(!p) return;
-    const infoToko = databaseToko.find(t => t.id === p.idToko);
-    // ... (lanjutkan dengan sisa kode lama Anda)
-}
+        function bukaModalDetail(idProduk) {
+            const p = databaseProduk.find(prod => prod.idProduk === idProduk);
+            if(!p) return;
+            const infoToko = databaseToko.find(t => t.id === p.idToko);
             
             const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `#/produk/${idProduk}`;
             window.history.pushState({ path: newUrl }, '', newUrl);
@@ -1223,7 +1201,9 @@ function bukaModalDetail(idProduk) {
                 console.error("Gagal menyalin link: ", err);
                 alert("Gagal menyalin otomatis. Silakan salin langsung dari address bar browser Anda.");
             });
-             // Fungsi ini otomatis berjalan saat web dibuka
+        }
+    </script>
+       // Fungsi ini otomatis berjalan saat web dibuka
         (function periksaWaktuKeranjang() {
             const jadwalHapus = localStorage.getItem('jadwal_hapus_keranjang');
             if (jadwalHapus) {
@@ -1235,9 +1215,5 @@ function bukaModalDetail(idProduk) {
                 }
             }
         })();
-        }
-      
-    </script>
-       
 </body>
 </html>
