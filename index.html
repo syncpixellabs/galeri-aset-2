@@ -1,17 +1,3 @@
-// Kode otomatis memeriksa dan menghapus keranjang jika sudah lewat 1 jam dari klik terakhir
-(function periksaWaktuKeranjang() {
-    const jadwalHapus = localStorage.getItem('jadwal_hapus_keranjang');
-    if (jadwalHapus) {
-        // Jika waktu sekarang sudah melewati waktu target (1 jam setelah klik)
-        if (Date.now() > parseInt(jadwalHapus)) {
-            if (typeof kosongkanKeranjang === "function") {
-                kosongkanKeranjang();
-            }
-            localStorage.removeItem('jadwal_hapus_keranjang');
-        }
-    }
-})();
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
