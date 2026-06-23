@@ -523,12 +523,23 @@
             }).join('');
         }
 
-        function bagikanProdukSpesifik(nama, harga, idToko) {
-            const linkAplikasi = window.location.href.split('?')[0].split('#')[0];
-            const teksShare = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${Number(harga).toLocaleString('id-ID')}*\n\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}`;
-            const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(teksShare)}`;
-            window.open(urlWA, '_blank');
-        }
+        function bagikanProdukSpesifik(nama, harga, idToko, gambar) {
+    const linkAplikasi = window.location.href.split('?')[0].split('#')[0];
+    
+    // Membuat teks dasar nota share
+    let teksShare = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${Number(harga).toLocaleString('id-ID')}*\n`;
+    
+    // Jika kolom gambar di Google Sheets terisi, masukkan link gambarnya di sini
+    if (gambar && gambar.trim() !== '') {
+        teksShare += `🖼️ Foto Produk: ${gambar.trim()}\n`;
+    }
+    
+    // Menambahkan deep link langsung menuju produk spesifik tersebut
+    teksShare += `\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}#/produk/${idToko}`;
+    
+    const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(teksShare)}`;
+    window.open(urlWA, '_blank');
+}
 
         function bukaModalDetail(idProduk) {
             const p = databaseProduk.find(prod => prod.idProduk === idProduk);
