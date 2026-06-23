@@ -507,9 +507,9 @@
                         <div class="w-full h-32 bg-gray-50 rounded-xl mb-3 flex items-center justify-center text-gray-300 relative overflow-hidden">
                             ${p.gambar ? `<img src="${p.gambar}" class="w-full h-full object-cover" loading="lazy">` : `<i class="fa-solid fa-image text-3xl"></i>`}
                             <span class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md font-medium max-w-[80%] truncate">${namaTokoPajangan}</span>
-                            <button onclick="bagikanProdukSpesifik('${p.nama}', '${p.harga}', '${p.idToko}', '${p.gambar || ''}'); event.stopPropagation();" class="absolute top-2 left-2 w-7 h-7 bg-white/90 backdrop-blur-xs text-gray-600 rounded-full flex items-center justify-center shadow-xs hover:bg-emerald-600 hover:text-white transition active:scale-90" title="Bagikan produk ini">
-    <i class="fa-solid fa-share-nodes text-[10px]"></i>
-</button>
+                            <button onclick="bagikanProdukSpesifik('${p.nama}', '${p.harga}', '${p.idToko}'); event.stopPropagation();" class="absolute top-2 left-2 w-7 h-7 bg-white/90 backdrop-blur-xs text-gray-600 rounded-full flex items-center justify-center shadow-xs hover:bg-emerald-600 hover:text-white transition active:scale-90" title="Bagikan produk ini">
+                                <i class="fa-solid fa-share-nodes text-[10px]"></i>
+                            </button>
                         </div>
                         <h4 class="font-bold text-gray-800 text-sm line-clamp-2 mb-1">${p.nama}</h4>
                         <p class="text-[11px] text-gray-400 mb-2 line-clamp-2">${p.deskripsi || 'Klik untuk lihat detail deskripsi...'}</p>
@@ -525,36 +525,30 @@
 
         async function bagikanProdukSpesifik(nama, harga, idToko, gambar) {
     const linkAplikasi = window.location.href.split('?')[0].split('#')[0];
-    let teksShare = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${Number(harga).toLocaleString('id-ID')}*\n\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}#/produk/${idToko}`;
+    const teksShare = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${Number(harga).toLocaleString('id-ID')}*\n\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}#/produk/${idToko}`;
 
-    // Fitur Utama: Share gambar asli sebagai file (Khusus di HP/Mobile)
-    if (navigator.share && navigator.canShare && gambar && gambar.trim() !== '') {
+    if (gambar && gambar.trim() !== '') {
         try {
             const respon = await fetch(gambar);
             const blob = await respon.blob();
-            const fileGambar = new File([blob], 'produk.webp', { type: blob.type });
-
-            if (navigator.canShare({ files: [fileGambar] })) {
-                await navigator.share({
-                    files: [fileGambar],
-                    title: nama,
-                    text: teksShare
-                });
-                return; 
-            }
+            
+            // Menyalin file gambar langsung ke clipboard sistem
+            const itemClipboard = new ClipboardItem({ [blob.type]: blob });
+            await navigator.clipboard.write([itemClipboard]);
+            
+            alert("📸 GAMBAR BERHASIL DISALIN!\n\nSistem telah menyalin foto produk. Di WhatsApp nanti, silakan langsung klik 'TEMPEL' / 'PASTE' atau tekan Ctrl+V pada kolom chat.");
         } catch (error) {
-            console.error("Gagal share gambar, beralih ke teks...", error);
+            console.error("Gagal menyalin gambar ke clipboard:", error);
+            navigator.clipboard.writeText(teksShare);
+            alert("Teks produk berhasil disalin! (Gagal menyalin gambar karena proteksi browser).");
         }
+    } else {
+        navigator.clipboard.writeText(teksShare);
+        alert("Teks produk berhasil disalin!");
     }
 
-    // Fitur Cadangan: Jika dibuka di Laptop/PC (Gunakan teks biasa)
-    let teksCadangan = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${Number(harga).toLocaleString('id-ID')}*\n`;
-    if (gambar && gambar.trim() !== '') {
-        teksCadangan += `🖼️ Foto Produk: ${gambar.trim()}\n`;
-    }
-    teksCadangan += `\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}#/produk/${idToko}`;
-    
-    const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(teksCadangan)}`;
+    // Tetap buka WhatsApp setelah menyalin gambar
+    const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(teksShare)}`;
     window.open(urlWA, '_blank');
 }
 
