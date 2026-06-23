@@ -523,7 +523,7 @@
             }).join('');
         }
 
-        async function async function bagikanProdukSpesifik(nama, harga, idToko, gambar) {
+        async function bagikanProdukSpesifik(nama, harga, idToko, gambar) {
     const linkAplikasi = window.location.href.split('?')[0].split('#')[0];
     const teksShare = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${Number(harga).toLocaleString('id-ID')}*\n\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}#/produk/${idToko}`;
 
@@ -570,7 +570,6 @@
     const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(teksCadangan)}`;
     window.open(urlWA, '_blank');
 }
-
         function bukaModalDetail(idProduk) {
             const p = databaseProduk.find(prod => prod.idProduk === idProduk);
             if(!p) return;
