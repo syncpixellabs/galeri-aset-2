@@ -994,52 +994,6 @@
         }
 
         function kirimWhatsApp() {
-            if(!keranjangIdToko) { alert("Keranjang masih kosong!"); return; }
-            const infoToko = databaseToko.find(t => t.id === keranjangIdToko);
-            if(!infoToko || !infoToko.wa) { alert("Nomor WhatsApp mitra toko belum terdaftar."); return; }
-
-            let subtotalAwal = 0;
-            Object.keys(keranjang).forEach(id => {
-                const p = databaseProduk.find(prod => prod.idProduk === id);
-                if(p) subtotalAwal += p.harga * keranjang[id];
-            });
-            if (infoToko.minKirim && subtotalAwal < infoToko.minKirim) {
-                alert(`Maaf, Toko ini menetapkan batas minimal belanja untuk pengiriman sebesar Rp${infoToko.minKirim.toLocaleString('id-ID')}.\n\nSubtotal belanja Anda saat ini baru Rp${subtotalAwal.toLocaleString('id-ID')}. Silakan tambah item barang.`);
-                return;
-            }
-
-            const namaCust = document.getElementById('cust-nama').value.trim();
-            const alamatCust = document.getElementById('cust-alamat').value.trim();
-            if(!namaCust || !alamatCust) { alert("Harap isi Nama dan Alamat Pengiriman Anda terlebih dahulu!"); return; }
-
-            const teksNota = encodeURIComponent(buatTeksNota());
-            let nomorWA = infoToko.wa.replace(/[^0-9]/g, '');
-            if (nomorWA.startsWith('0')) nomorWA = '62' + nomorWA.slice(1);
-
-            // Deteksi perangkat HP atau Laptop
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-            // KUNCI UTAMA: Buka WA langsung tanpa memicu pilihan browser
-            if (isMobile) {
-                // Untuk HP: Paksa ganti halaman di jendela yang sama (Tanpa _blank) agar langsung lari ke aplikasi WA
-                window.location.href = `https://wa.me/${nomorWA}?text=${teksNota}`;
-            } else {
-                // Untuk Laptop/PC: Buka tab baru ke WA Web
-                window.open(`https://web.whatsapp.com/send?phone=${nomorWA}&text=${teksNota}`, '_blank');
-            }
-
-            // FITUR TAMBAHAN: Kosongkan keranjang otomatis setelah 1 jam (1 jam = 3.600.000 milidetik)
-            setTimeout(() => {
-                if(typeof kosongkanKeranjang === "function") {
-                    kosongkanKeranjang();
-                    // Jika modal keranjang masih terbuka, kita tutup otomatis
-                    const modalKeranjang = document.getElementById('modal-keranjang');
-                    if (modalKeranjang && !modalKeranjang.classList.contains('hidden')) {
-                        bukaKeranjang();
-                    }
-                }
-            }, 3600000); 
-        }
 
         function simpanBiodataLokal() {
             localStorage.setItem('cust_nama', document.getElementById('cust-nama').value);
