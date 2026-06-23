@@ -999,19 +999,17 @@
             let nomorWA = infoToko.wa.replace(/[^0-9]/g, '');
             if (nomorWA.startsWith('0')) nomorWA = '62' + nomorWA.slice(1);
 
-            // Alamat khusus aplikasi WA (Protokol langsung)
-            const urlAplikasi = `whatsapp://send?phone=${nomorWA}&text=${teksNota}`;
-            const urlWebBiasa = `https://wa.me/${nomorWA}?text=${teksNota}`;
+            // DETEKSI PERANGKAT: Apakah pengguna pakai HP (Mobile) atau Laptop (Desktop)
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-            // Langkah 1: Paksa HP membuka aplikasi WhatsApp terinstal secara instan
-            window.location.href = urlAplikasi;
-
-            // Langkah 2: Jaring pengaman jika dibuka dari laptop/PC atau HP tanpa aplikasi WA
-            setTimeout(() => {
-                if (document.hasFocus()) {
-                    window.open(urlWebBiasa, '_blank');
-                }
-            }, 1500);
+            if (isMobile) {
+                // Trik Terbaik untuk HP: Gunakan wa.me tetapi paksa buka di jendela yang sama (self) 
+                // Ini akan langsung memicu sistem HP membuka aplikasi WA tanpa memunculkan pilihan browser.
+                window.location.href = `https://wa.me/${nomorWA}?text=${teksNota}`;
+            } else {
+                // Jika dibuka dari Laptop/PC, buka tab baru ke WhatsApp Web/Desktop resmi
+                window.open(`https://web.whatsapp.com/send?phone=${nomorWA}&text=${teksNota}`, '_blank');
+            }
         }
 
         function simpanBiodataLokal() {
