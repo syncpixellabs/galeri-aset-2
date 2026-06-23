@@ -999,7 +999,19 @@
             let nomorWA = infoToko.wa.replace(/[^0-9]/g, '');
             if (nomorWA.startsWith('0')) nomorWA = '62' + nomorWA.slice(1);
 
-            window.open(`https://wa.me/${nomorWA}?text=${teksNota}`, '_blank');
+            // Alamat khusus aplikasi WA (Protokol langsung)
+            const urlAplikasi = `whatsapp://send?phone=${nomorWA}&text=${teksNota}`;
+            const urlWebBiasa = `https://wa.me/${nomorWA}?text=${teksNota}`;
+
+            // Langkah 1: Paksa HP membuka aplikasi WhatsApp terinstal secara instan
+            window.location.href = urlAplikasi;
+
+            // Langkah 2: Jaring pengaman jika dibuka dari laptop/PC atau HP tanpa aplikasi WA
+            setTimeout(() => {
+                if (document.hasFocus()) {
+                    window.open(urlWebBiasa, '_blank');
+                }
+            }, 1500);
         }
 
         function simpanBiodataLokal() {
