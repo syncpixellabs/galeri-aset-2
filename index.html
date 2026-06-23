@@ -1012,38 +1012,38 @@
             const infoToko = databaseToko.find(t => t.id === keranjangIdToko);
             if(!infoToko || !infoToko.wa) { alert("Nomor WhatsApp mitra toko belum terdaftar."); return; }
 
+            // Validasi Minimal Belanja (tetap sama)
             let subtotalAwal = 0;
             Object.keys(keranjang).forEach(id => {
                 const p = databaseProduk.find(prod => prod.idProduk === id);
                 if(p) subtotalAwal += p.harga * keranjang[id];
             });
             if (infoToko.minKirim && subtotalAwal < infoToko.minKirim) {
-                alert(`Maaf, Toko ini menetapkan batas minimal belanja untuk pengiriman sebesar Rp${infoToko.minKirim.toLocaleString('id-ID')}.\n\nSubtotal belanja Anda saat ini baru Rp${subtotalAwal.toLocaleString('id-ID')}. Silakan tambah item barang.`);
+                alert(`Maaf, batas minimal belanja Rp${infoToko.minKirim.toLocaleString('id-ID')}.`);
                 return;
             }
 
             const namaCust = document.getElementById('cust-nama').value.trim();
             const alamatCust = document.getElementById('cust-alamat').value.trim();
-            if(!namaCust || !alamatCust) { alert("Harap isi Nama dan Alamat Pengiriman Anda terlebih dahulu!"); return; }
+            if(!namaCust || !alamatCust) { alert("Harap isi Nama dan Alamat Pengiriman!"); return; }
 
             const teksNota = encodeURIComponent(buatTeksNota());
             let nomorWA = infoToko.wa.replace(/[^0-9]/g, '');
             if (nomorWA.startsWith('0')) nomorWA = '62' + nomorWA.slice(1);
 
-            // Trik Pintar 1: Catat waktu klik saat ini, tambahkan durasi 1 jam ke depan untuk dihapus nanti
-            const waktuHapus = Date.now() + 3600000; 
-            localStorage.setItem('jadwal_hapus_keranjang', waktuHapus);
+            // SIMPAN WAKTU HAPUS KERANJANG (1 Jam = 3.600.000 ms)
+            localStorage.setItem('jadwal_hapus_keranjang', Date.now() + 3600000);
 
-            // Deteksi perangkat HP atau Laptop
+            // Tembak langsung ke Aplikasi WhatsApp
             const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-            // KUNCI UTAMA: Alihkan secara murni dan instan tanpa beban script tertahan
             if (isMobile) {
                 window.location.href = `https://wa.me/${nomorWA}?text=${teksNota}`;
             } else {
                 window.open(`https://web.whatsapp.com/send?phone=${nomorWA}&text=${teksNota}`, '_blank');
             }
         }
+
+        
 
         function simpanBiodataLokal() {
             localStorage.setItem('cust_nama', document.getElementById('cust-nama').value);
@@ -1217,5 +1217,17 @@
             });
         }
     </script>
+       // Fungsi ini otomatis berjalan saat web dibuka
+        (function periksaWaktuKeranjang() {
+            const jadwalHapus = localStorage.getItem('jadwal_hapus_keranjang');
+            if (jadwalHapus) {
+                if (Date.now() > parseInt(jadwalHapus)) {
+                    if (typeof kosongkanKeranjang === "function") {
+                        kosongkanKeranjang();
+                    }
+                    localStorage.removeItem('jadwal_hapus_keranjang');
+                }
+            }
+        })();
 </body>
 </html>
