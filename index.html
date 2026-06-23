@@ -313,16 +313,16 @@
             renderProduk();
         }
 
-       window.addEventListener('DOMContentLoaded', async () => {
-    muatBiodataLokal();
-    muatWishlistLokal();
-    tampilkanSkeletonLoader();
-    await muatDaftarToko();
-    await muatSemuaProduk();
-    prosesDeepLinkingURLLoad();
-    inisialisasiPullToRefresh();
-    inisialisasiPWAInstall();
-});
+        window.addEventListener('DOMContentLoaded', async () => {
+            muatBiodataLokal();
+            muatWishlistLokal();
+            tampilkanSkeletonLoader();
+            await muatDaftarToko();
+            await muatSemuaProduk();
+            prosesDeepLinkingURLLoad();
+            inisialisasiPullToRefresh();
+            inisialisasiPWAInstall();
+        });
 
         function tampilkanSkeletonLoader() {
             const grid = document.getElementById('grid-produk');
@@ -490,76 +490,99 @@
             return hasil;
         }
 
-       function renderProduk() {
-    const grid = document.getElementById('grid-produk');
-    if (!grid) return; // Mencegah error jika elemen grid tidak ada
+        function renderProduk() {
+            const grid = document.getElementById('grid-produk');
+            const kataKunci = queryPencarian.toLowerCase().trim().split(/\s+/).filter(k => k.length > 0);
 
-    const kataKunci = queryPencarian.toLowerCase().trim().split(/\s+/).filter(k => k.length > 0);
+           // GANTI BAGIAN FILTER LAMA ANDA DENGAN INI:
+let produkFilter = databaseProduk.filter(p => {
+    const matchCat = kategoriAktif === 'Semua' || p.kategori === kategoriAktif;
+    const matchSearch = p.nama.toLowerCase().includes(pencarian.toLowerCase());
+    return matchCat && matchSearch;
+});
 
-    // Filter Produk
-    let produkFilter = databaseProduk.filter(p => {
-        let katSheet = p.kategori ? p.kategori.toLowerCase() : '';
-        let cocokKategori = false;
-        
-        if (kategoriAktif === 'Semua') cocokKategori = true;
-        else if (kategoriAktif === 'Favorit') cocokKategori = wishlist.includes(p.idProduk);
-        else if (kategoriAktif === 'Makanan & Minuman' && katSheet.includes('makanan')) cocokKategori = true;
-        else if (kategoriAktif === 'Sembako' && katSheet.includes('sembako')) cocokKategori = true;
-        else if (kategoriAktif === 'Fashion' && katSheet.includes('fashion')) cocokKategori = true;
-        else if (kategoriAktif === 'Rumah Tangga' && katSheet.includes('rumah')) cocokKategori = true;
-        else if (kategoriAktif === 'Elektronik' && katSheet.includes('elektronik')) cocokKategori = true;
-        else if (kategoriAktif === 'Kesehatan' && (katSheet.includes('kesehatan') || katSheet.includes('kecantikan'))) cocokKategori = true;
-        else if (kategoriAktif === 'Jasa' && katSheet.includes('jasa')) cocokKategori = true;
-        else if (kategoriAktif === 'Perlengkapan' && (katSheet.includes('perlengkapan') || katSheet.includes('kemasan'))) cocokKategori = true;
-        else if (kategoriAktif === 'Pendidikan' && katSheet.includes('pendidikan')) cocokKategori = true;
-        else if (kategoriAktif === 'Otomotif' && katSheet.includes('otomotif')) cocokKategori = true;
-        
-        if (!cocokKategori) return false;
-        if (kataKunci.length === 0) return true;
+// Tambahkan logika urutan berdasarkan riwayat (BAGIAN BARU)
+const riwayat = JSON.parse(localStorage.getItem('gb_riwayat_lihat')) || {};
+produkFilter.sort((a, b) => {
+    const scoreA = riwayat[a.idProduk] || 0;
+    const scoreB = riwayat[b.idProduk] || 0;
+    return scoreB - scoreA; 
+});
+                let katSheet = p.kategori ? p.kategori.toLowerCase() : '';
+                let cocokKategori = false;
+                
+                if (kategoriAktif === 'Semua') {
+                    cocokKategori = true;
+                } else if (kategoriAktif === 'Favorit') {
+                    cocokKategori = wishlist.includes(p.idProduk);
+                } else if (kategoriAktif === 'Makanan & Minuman' && katSheet.includes('makanan')) cocokKategori = true;
+                else if (kategoriAktif === 'Sembako' && katSheet.includes('sembako')) cocokKategori = true;
+                else if (kategoriAktif === 'Fashion' && katSheet.includes('fashion')) cocokKategori = true;
+                else if (kategoriAktif === 'Rumah Tangga' && katSheet.includes('rumah')) cocokKategori = true;
+                else if (kategoriAktif === 'Elektronik' && katSheet.includes('elektronik')) cocokKategori = true;
+                else if (kategoriAktif === 'Kesehatan' && (katSheet.includes('kesehatan') || katSheet.includes('kecantikan'))) cocokKategori = true;
+                else if (kategoriAktif === 'Jasa' && katSheet.includes('jasa')) cocokKategori = true;
+                else if (kategoriAktif === 'Perlengkapan' && (katSheet.includes('perlengkapan') || katSheet.includes('kemasan'))) cocokKategori = true;
+                else if (kategoriAktif === 'Pendidikan' && katSheet.includes('pendidikan')) cocokKategori = true;
+                else if (kategoriAktif === 'Otomotif' && katSheet.includes('otomotif')) cocokKategori = true;
+                
+                if (!cocokKategori) return false;
+                if (kataKunci.length === 0) return true;
 
-        const gabunganTeksProduk = `${p.nama.toLowerCase()} ${p.deskripsi ? p.deskripsi.toLowerCase() : ''}`;
-        return kataKunci.some(kata => gabunganTeksProduk.includes(kata));
-    });
+                const gabunganTeksProduk = `${p.nama.toLowerCase()} ${p.deskripsi ? p.deskripsi.toLowerCase() : ''}`;
+                return kataKunci.some(kata => gabunganTeksProduk.includes(kata));
+            });
 
-    // Sorting (Produk Terlaris)
-    try {
-        let dataKlik = JSON.parse(localStorage.getItem('riwayat_klik')) || {};
-        produkFilter.sort((a, b) => {
-            let klikA = dataKlik[a.idProduk] || 0;
-            let klikB = dataKlik[b.idProduk] || 0;
-            return klikB - klikA;
-        });
-    } catch (e) {
-        console.error("Gagal mengurutkan:", e);
-    }
+            if (produkFilter.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400 text-sm"><i class="fa-solid fa-folder-open text-3xl block mb-2 opacity-50"></i> Produk tidak ditemukan.</div>`;
+                return;
+            }
 
-    // Render ke HTML
-    if (produkFilter.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400 text-sm">Produk tidak ditemukan.</div>`;
-        return;
-    }
+            grid.innerHTML = produkFilter.map(p => {
+                const infoToko = databaseToko.find(t => t.id === p.idToko);
+                const namaTokoPajangan = infoToko ? infoToko.nama : p.idToko;
+                const isFavorit = wishlist.includes(p.idProduk);
+                const jumlah = keranjang[p.idProduk] || 0;
 
-    grid.innerHTML = produkFilter.map(p => {
-        const infoToko = databaseToko.find(t => t.id === p.idToko);
-        const namaTokoPajangan = infoToko ? infoToko.nama : p.idToko;
-        const isFavorit = wishlist.includes(p.idProduk);
-        const jumlah = keranjang[p.idProduk] || 0;
-        
-        return `
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between p-3 relative hover:shadow-md transition" onclick="bukaModalDetail('${p.idProduk}')">
-                <button onclick="toggleWishlist('${p.idProduk}'); event.stopPropagation();" class="absolute top-5 right-5 z-10 bg-white/80 backdrop-blur-sm w-7 h-7 rounded-full flex items-center justify-center text-xs shadow-sm transition ${isFavorit ? 'text-red-500' : 'text-gray-400'}">
-                    <i class="${isFavorit ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                </button>
-                <div class="w-full h-32 bg-gray-50 rounded-xl mb-3 flex items-center justify-center text-gray-300 relative overflow-hidden">
-                    ${p.gambar ? `<img src="${p.gambar}" class="w-full h-full object-cover" loading="lazy">` : `<i class="fa-solid fa-image text-2xl"></i>`}
-                    <span class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md">${namaTokoPajangan}</span>
+                let htmlTombol = jumlah > 0 ? `
+                    <div class="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl p-0.5 w-full">
+                        <button onclick="aturQtyItem('${p.idProduk}', -1); event.stopPropagation();" class="w-7 h-7 bg-white text-emerald-600 rounded-lg flex items-center justify-center font-bold shadow-xs active:scale-95 transition text-xs"><i class="fa-solid fa-minus"></i></button>
+                        <span class="font-bold text-emerald-700 text-xs px-2">${jumlah}</span>
+                        <button onclick="tambahKeKeranjang('${p.idProduk}', '${p.idToko}'); event.stopPropagation();" class="w-7 h-7 bg-emerald-600 text-white rounded-lg flex items-center justify-center font-bold shadow-xs active:scale-95 transition text-xs"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                ` : `
+                    <button onclick="tambahKeKeranjang('${p.idProduk}', '${p.idToko}'); event.stopPropagation();" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-3 rounded-xl text-xs active:scale-95 transition flex items-center justify-center gap-1 shadow-sm"><i class="fa-solid fa-cart-plus text-[10px]"></i> Beli</button>
+                `;
+
+                return `
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between p-3 relative hover:shadow-md transition">
+                    <button onclick="toggleWishlist('${p.idProduk}'); event.stopPropagation();" class="absolute top-5 right-5 z-10 bg-white/80 backdrop-blur-sm w-7 h-7 rounded-full flex items-center justify-center text-xs shadow-sm transition ${isFavorit ? 'text-red-500' : 'text-gray-400 hover:text-red-400'}">
+                        <i class="${isFavorit ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                    </button>
+
+                    <div onclick="bukaModalDetail('${p.idProduk}')" class="cursor-pointer">
+                        <div class="w-full h-32 bg-gray-50 rounded-xl mb-3 flex items-center justify-center text-gray-300 relative overflow-hidden">
+                            ${p.gambar ? 
+                                `<img src="${p.gambar}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/400x400/f3f4f6/a3a3a3?text=Foto+Tidak+Tersedia';">` 
+                                : 
+                                `<div class="text-center text-gray-400"><i class="fa-solid fa-image text-2xl"></i><span class="text-[10px] block mt-1">Foto belum tersedia</span></div>`
+                            }
+                            <span class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md font-medium max-w-[80%] truncate">${namaTokoPajangan}</span>
+                            <button onclick="bagikanProdukSpesifik('${p.nama}', '${p.harga}', '${p.idToko}', '${p.gambar || ''}'); event.stopPropagation();" class="absolute top-2 left-2 w-7 h-7 bg-white/90 backdrop-blur-xs text-gray-600 rounded-full flex items-center justify-center shadow-xs hover:bg-emerald-600 hover:text-white transition active:scale-90" title="Bagikan produk ini">
+                                <i class="fa-solid fa-share-nodes text-[10px]"></i>
+                            </button>
+                        </div>
+                        <h4 class="font-bold text-gray-800 text-sm line-clamp-2 mb-1">${p.nama}</h4>
+                        <p class="text-[11px] text-gray-400 mb-2 line-clamp-2">${p.deskripsi || 'Klik untuk lihat detail deskripsi...'}</p>
+                    </div>
+                    <div>
+                        <div class="text-green-600 font-extrabold text-sm mb-2">Rp${p.harga.toLocaleString('id-ID')}<span class="text-gray-400 font-normal text-xs"> / ${p.satuan}</span></div>
+                        ${htmlTombol}
+                    </div>
                 </div>
-                <h4 class="font-bold text-gray-800 text-sm line-clamp-2 mb-1">${p.nama}</h4>
-                <div class="text-green-600 font-extrabold text-sm mb-2">Rp${p.harga.toLocaleString('id-ID')}</div>
-            </div>
-        `;
-    }).join('');
-}
+                `;
+            }).join('');
+        }
 
         async function bagikanProdukSpesifik(nama, harga, idToko, gambar) {
             const linkAplikasi = window.location.href.split('?')[0].split('#')[0];
@@ -603,15 +626,19 @@
             window.open(urlWA, '_blank');
         }
 
-        function bukaModalDetail(idProduk) {
-            // TAMBAHKAN BARIS INI:
-    catatKlikProduk(idProduk); 
-    
+        // GANTI DENGAN INI:
+function bukaModalDetail(idProduk) {
+    // Tambahkan pencatatan riwayat
+    let riwayat = JSON.parse(localStorage.getItem('gb_riwayat_lihat')) || {};
+    riwayat[idProduk] = (riwayat[idProduk] || 0) + 1;
+    localStorage.setItem('gb_riwayat_lihat', JSON.stringify(riwayat));
+
+    // Kode asli Anda tetap di sini
     const p = databaseProduk.find(prod => prod.idProduk === idProduk);
-    // ... kode selanjutnya tetap sama ...
-            const p = databaseProduk.find(prod => prod.idProduk === idProduk);
-            if(!p) return;
-            const infoToko = databaseToko.find(t => t.id === p.idToko);
+    if(!p) return;
+    const infoToko = databaseToko.find(t => t.id === p.idToko);
+    // ... (lanjutkan dengan sisa kode lama Anda)
+}
             
             const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `#/produk/${idProduk}`;
             window.history.pushState({ path: newUrl }, '', newUrl);
@@ -1197,18 +1224,8 @@
                 alert("Gagal menyalin otomatis. Silakan salin langsung dari address bar browser Anda.");
             });
         }
-           // Fungsi ini otomatis berjalan saat web dibuka
-        (function periksaWaktuKeranjang() {
-            const jadwalHapus = localStorage.getItem('jadwal_hapus_keranjang');
-            if (jadwalHapus) {
-                if (Date.now() > parseInt(jadwalHapus)) {
-                    if (typeof kosongkanKeranjang === "function") {
-                        kosongkanKeranjang();
-                    }
-                    localStorage.removeItem('jadwal_hapus_keranjang');
-                }
-            }
-   // Fungsi untuk mengecek waktu hapus keranjang otomatis
+    </script>
+       // Fungsi ini otomatis berjalan saat web dibuka
         (function periksaWaktuKeranjang() {
             const jadwalHapus = localStorage.getItem('jadwal_hapus_keranjang');
             if (jadwalHapus) {
@@ -1220,17 +1237,5 @@
                 }
             }
         })();
-
-        // Fungsi untuk mencatat klik produk
-        function catatKlikProduk(idProduk) {
-            let dataKlik = JSON.parse(localStorage.getItem('riwayat_klik')) || {};
-            dataKlik[idProduk] = (dataKlik[idProduk] || 0) + 1;
-            localStorage.setItem('riwayat_klik', JSON.stringify(dataKlik));
-        }
-   <script>
-        
-</body>
-</html>
-    
 </body>
 </html>
