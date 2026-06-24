@@ -7,8 +7,8 @@
     <title>Grosir Bersama - Mega Katalog</title>
     
     <meta property="og:title" content="Grosir Bersama - Mega Katalog">
-    <meta property="og:image" content="https://URL_GAMBAR_ANDA.jpg"> 
-    <meta property="og:description" content="Katalog produk terbaik harga grosir.">
+    <meta property="og:image" content="URL_GAMBAR_ANDA_DI_SINI">
+    <meta property="og:description" content="Temukan produk terbaik dengan harga grosir.">
     <link rel="manifest" href="manifest.json">
     </head>
     <meta name="theme-color" content="#16a34a">
@@ -308,7 +308,27 @@
         function scrollToTop() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+        // Tambahkan fungsi ini untuk membaca Hash URL
+function cekDeepLink() {
+    const hash = window.location.hash; // Contoh: #/produk/123
+    if (hash && hash.includes('/produk/')) {
+        const idProduk = hash.split('/')[2]; // Mengambil ID dari URL
+        
+        // Beri jeda sedikit agar data Google Sheets selesai dimuat
+        setTimeout(() => {
+            const elemenProduk = document.getElementById('produk-' + idProduk);
+            if (elemenProduk) {
+                elemenProduk.scrollIntoView(); // Langsung geser ke produk
+                // Jika Anda punya fungsi bukaModal, panggil di sini:
+                // bukaModalDetail(idProduk); 
+            }
+        }, 1000); // Tunggu 1 detik agar data benar-benar siap
+    }
+}
 
+// Jalankan fungsi ini saat aplikasi selesai memuat data
+// Letakkan pemanggilan ini di akhir fungsi yang memuat data produk Anda
+cekDeepLink();
         // Fungsi Reset/Clear Pencarian
         function clearPencarian() {
             const input = document.getElementById('search-input');
