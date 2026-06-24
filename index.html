@@ -79,9 +79,9 @@
                 <i class="fa-solid fa-store text-green-600"></i> <span>Grosir Bersama</span>
             </h1>
             <div class="flex items-center gap-1">
-                <button id="btnInstal" style="display: none;" class="text-[11px] bg-green-600 text-white font-bold px-3 py-1.5 rounded-lg mr-1 flex items-center gap-1 cursor-pointer border-none shadow-sm">
-    <i class="fa-solid fa-download"></i> Instal Aplikasi
-</button>
+                <button id="btn-pwa-install" class="hidden text-[11px] bg-green-100 text-green-700 font-bold px-2.5 py-1.5 rounded-lg mr-1 flex items-center gap-1">
+                    <i class="fa-solid fa-download"></i> Instal Aplikasi
+                </button>
                 <button onclick="bukaKeranjang()" class="relative p-2 text-gray-600 hover:text-green-600 transition">
                     <i class="fa-solid fa-basket-shopping text-2xl"></i>
                     <span id="badge-keranjang" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
@@ -92,12 +92,9 @@
 
     <main class="max-w-4xl mx-auto px-4 py-6">
         <div class="mb-6">
-            <div class="relative w-full">
+            <div class="relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400"></i>
-                <input type="text" id="search-input" oninput="filterProduk()" placeholder="Cari produk terlaris lintas toko..." class="w-full pl-12 pr-10 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:border-green-500 text-sm">
-                <button id="btnClearCari" onclick="clearPencarian()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 hidden border-none bg-transparent cursor-pointer">
-                    <i class="fa-solid fa-circle-xmark text-lg"></i>
-                </button>
+                <input type="text" id="search-input" oninput="filterProduk()" placeholder="Cari produk terlaris lintas toko..." class="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:border-green-500 text-sm">
             </div>
         </div>
 
@@ -181,10 +178,6 @@
         <p>&copy; 2026 Grosir Bersama Platform Agregator Lokal.</p>
     </footer>
 
-    <button id="btnScrollTop" onclick="scrollToTop()" class="fixed bottom-24 right-6 bg-green-600 text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300 z-40 hover:bg-green-700 active:scale-90 cursor-pointer border-none">
-        <i class="fa-solid fa-arrow-up"></i>
-    </button>
-
     <div id="modal-detail" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
         <div class="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-xl transform scale-95 transition-transform duration-300">
             <div class="relative h-64 bg-gray-100 flex items-center justify-center">
@@ -209,13 +202,9 @@
 
     <div id="modal-toko" class="fixed inset-0 bg-black/50 z-50 flex items-end justify-center hidden opacity-0 transition-opacity duration-300">
         <div class="bg-white w-full max-w-md rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto transform translate-y-full transition-transform duration-300">
-            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                <h3 class="font-bold text-gray-900 text-base flex items-center gap-2">
-                    <i class="fa-solid fa-store text-green-600"></i> Silakan Pilih Mitra Toko
-                </h3>
-                <div class="flex items-center gap-3">
-                    <button onclick="toggleModalToko()" class="text-gray-400 text-2xl hover:text-gray-600 transition border-none bg-transparent cursor-pointer">&times;</button>
-                </div>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-gray-800">Pilih Mitra Toko</h3>
+                <button onclick="toggleModalToko()" class="text-gray-400 text-xl">&times;</button>
             </div>
             <div id="daftar-toko-list" class="space-y-3"></div>
         </div>
@@ -224,15 +213,8 @@
     <div id="modal-keranjang" class="fixed inset-0 bg-black/50 z-50 flex items-end justify-center hidden opacity-0 transition-opacity duration-300">
         <div class="bg-white w-full max-w-md rounded-t-2xl p-5 max-h-[90vh] overflow-y-auto transform translate-y-full transition-transform duration-300">
             <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                <h3 class="font-bold text-gray-900 text-base flex items-center gap-2">
-                    <i class="fa-solid fa-basket-shopping text-green-600"></i> Keranjang Nota Belanja
-                </h3>
-                <div class="flex items-center gap-3">
-                    <button onclick="kosongkanKeranjang()" class="text-red-500 hover:text-red-700 text-xs font-semibold flex items-center gap-1 cursor-pointer transition" title="Kosongkan semua item">
-                        <i class="fa-solid fa-trash-can"></i> Kosongkan
-                    </button>
-                    <button onclick="bukaKeranjang()" class="text-gray-400 text-2xl">&times;</button>
-                </div>
+                <h3 class="font-bold text-gray-900 text-base flex items-center gap-2"><i class="fa-solid fa-basket-shopping text-green-600"></i> Keranjang Nota Belanja</h3>
+                <button onclick="bukaKeranjang()" class="text-gray-400 text-2xl">&times;</button>
             </div>
 
             <div class="bg-gray-50 rounded-xl p-3 mb-4 border border-gray-200 space-y-2.5">
@@ -286,32 +268,6 @@
 
         let startY = 0;
         let isTop = false;
-
-        // Logika memunculkan tombol Back to Top saat di-scroll down
-        window.addEventListener('scroll', () => {
-            const btn = document.getElementById('btnScrollTop');
-            if (window.scrollY > 300) {
-                btn.classList.remove('opacity-0', 'pointer-events-none');
-                btn.classList.add('opacity-100');
-            } else {
-                btn.classList.add('opacity-0', 'pointer-events-none');
-                btn.classList.remove('opacity-100');
-            }
-        });
-
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // Fungsi Reset/Clear Pencarian
-        function clearPencarian() {
-            const input = document.getElementById('search-input');
-            const btnClear = document.getElementById('btnClearCari');
-            input.value = '';
-            btnClear.classList.add('hidden');
-            queryPencarian = '';
-            renderProduk();
-        }
 
         window.addEventListener('DOMContentLoaded', async () => {
             muatBiodataLokal();
@@ -549,11 +505,7 @@
 
                     <div onclick="bukaModalDetail('${p.idProduk}')" class="cursor-pointer">
                         <div class="w-full h-32 bg-gray-50 rounded-xl mb-3 flex items-center justify-center text-gray-300 relative overflow-hidden">
-                            ${p.gambar ? 
-                                `<img src="${p.gambar}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/400x400/f3f4f6/a3a3a3?text=Foto+Tidak+Tersedia';">` 
-                                : 
-                                `<div class="text-center text-gray-400"><i class="fa-solid fa-image text-2xl"></i><span class="text-[10px] block mt-1">Foto belum tersedia</span></div>`
-                            }
+                            ${p.gambar ? `<img src="${p.gambar}" class="w-full h-full object-cover" loading="lazy">` : `<i class="fa-solid fa-image text-3xl"></i>`}
                             <span class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md font-medium max-w-[80%] truncate">${namaTokoPajangan}</span>
                             <button onclick="bagikanProdukSpesifik('${p.nama}', '${p.harga}', '${p.idToko}', '${p.gambar || ''}'); event.stopPropagation();" class="absolute top-2 left-2 w-7 h-7 bg-white/90 backdrop-blur-xs text-gray-600 rounded-full flex items-center justify-center shadow-xs hover:bg-emerald-600 hover:text-white transition active:scale-90" title="Bagikan produk ini">
                                 <i class="fa-solid fa-share-nodes text-[10px]"></i>
@@ -575,11 +527,13 @@
             const linkAplikasi = window.location.href.split('?')[0].split('#')[0];
             const teksShare = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${Number(harga).toLocaleString('id-ID')}*\n\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}#/produk/${idToko}`;
 
+            // Jika di HP dan mendukung fitur Web Share API, serta ada gambarnya
             if (navigator.share && navigator.canShare && gambar && gambar.trim() !== '') {
                 try {
                     const respon = await fetch(gambar);
                     const blobAsli = await respon.blob();
                     
+                    // Konversi ke Canvas & PNG agar kompatibel di semua sistem operasi
                     const bitmap = await createImageBitmap(blobAsli);
                     const canvas = document.createElement('canvas');
                     canvas.width = bitmap.width;
@@ -596,13 +550,14 @@
                             title: nama,
                             text: teksShare
                         });
-                        return;
+                        return; // Berhasil kirim file gambar + teks caption
                     }
                 } catch (error) {
                     console.error("Gagal share via API, beralih ke teks biasa...", error);
                 }
             }
 
+            // CADANGAN: Jika dibuka dari PC/Laptop atau API gagal, gunakan cara teks link standar WhatsApp
             let teksCadangan = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${Number(harga).toLocaleString('id-ID')}*\n`;
             if (gambar && gambar.trim() !== '') {
                 teksCadangan += `🖼️ Foto Produk: ${gambar.trim()}\n`;
@@ -740,45 +695,28 @@
         }
 
         function inisialisasiPWAInstall() {
-            let delayedPrompt;
-            const btnInstal = document.getElementById('btnInstal');
-
-            // 1. Jalur Android: Jika mendukung instalasi otomatis
+            let deferredPrompt;
+            const btnInstall = document.getElementById('btn-pwa-install');
+            
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
-                delayedPrompt = e;
-                btnInstal.style.display = 'inline-flex';
+                deferredPrompt = e;
+                btnInstall.classList.remove('hidden');
             });
 
-            // 2. Jalur iPhone: Deteksi jika pengguna memakai iOS Safari
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-
-            // Jika dia pakai iPhone dan BELUM menginstal aplikasinya, tombol hijau langsung nongol!
-            if (isIOS && !isStandalone) {
-                btnInstal.style.display = 'inline-flex';
-            }
-
-            btnInstal.addEventListener('click', async () => {
-                // Respons Android
-                if (delayedPrompt) {
-                    delayedPrompt.prompt();
-                    const { outcome } = await delayedPrompt.userChoice;
-                    delayedPrompt = null;
-                    btnInstal.style.display = 'none';
-                } 
-                // Respons iPhone (Berikan petunjuk pop-up otomatis yang ramah)
-                else if (isIOS) {
-                    alert("📱 Cara Mudah Instal di iPhone:\n\n1. Klik tombol 'Bagikan' (Share Icon berbentuk kotak dengan panah ke atas) di bagian bawah browser Safari.\n2. Gulir ke bawah dan pilih 'Tambahkan ke Layar Utama' (Add to Home Screen).\n3. Aplikasi Grosir Bersama akan langsung nangkring di HP Anda!");
-                } 
-                // Respons Laptop / Browser lain
-                else {
-                    alert("💡 Untuk menginstal: Klik titik tiga di kanan atas browser Anda, lalu pilih 'Instal Aplikasi' atau 'Tambahkan ke Layar Utama'.");
+            btnInstall.addEventListener('click', async () => {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    btnInstall.classList.add('hidden');
                 }
+                deferredPrompt = null;
             });
 
             window.addEventListener('appinstalled', () => {
-                btnInstal.style.display = 'none';
+                btnInstall.classList.add('hidden');
+                deferredPrompt = null;
             });
         }
 
@@ -832,20 +770,6 @@
             updateBadgeKeranjang();
             renderProduk();
             renderIsiKeranjang();
-        }
-
-        function kosongkanKeranjang() {
-            if (Object.keys(keranjang).length === 0) return;
-            
-            let konfirmasi = confirm("Apakah Anda yakin ingin menghapus semua barang di keranjang belanja?");
-            if (konfirmasi) {
-                keranjang = {};
-                keranjangIdToko = null;
-                updateBadgeKeranjang();
-                renderProduk();
-                renderIsiKeranjang();
-                tampilkanNotifikasiOngkir("🛒 Keranjang telah dikosongkan.");
-            }
         }
 
         function updateBadgeKeranjang() {
@@ -998,38 +922,26 @@
             const infoToko = databaseToko.find(t => t.id === keranjangIdToko);
             if(!infoToko || !infoToko.wa) { alert("Nomor WhatsApp mitra toko belum terdaftar."); return; }
 
-            // Validasi Minimal Belanja (tetap sama)
             let subtotalAwal = 0;
             Object.keys(keranjang).forEach(id => {
                 const p = databaseProduk.find(prod => prod.idProduk === id);
                 if(p) subtotalAwal += p.harga * keranjang[id];
             });
             if (infoToko.minKirim && subtotalAwal < infoToko.minKirim) {
-                alert(`Maaf, batas minimal belanja Rp${infoToko.minKirim.toLocaleString('id-ID')}.`);
+                alert(`Maaf, Toko ini menetapkan batas minimal belanja untuk pengiriman sebesar Rp${infoToko.minKirim.toLocaleString('id-ID')}.\n\nSubtotal belanja Anda saat ini baru Rp${subtotalAwal.toLocaleString('id-ID')}. Silakan tambah item barang.`);
                 return;
             }
 
             const namaCust = document.getElementById('cust-nama').value.trim();
             const alamatCust = document.getElementById('cust-alamat').value.trim();
-            if(!namaCust || !alamatCust) { alert("Harap isi Nama dan Alamat Pengiriman!"); return; }
+            if(!namaCust || !alamatCust) { alert("Harap isi Nama dan Alamat Pengiriman Anda terlebih dahulu!"); return; }
 
             const teksNota = encodeURIComponent(buatTeksNota());
             let nomorWA = infoToko.wa.replace(/[^0-9]/g, '');
             if (nomorWA.startsWith('0')) nomorWA = '62' + nomorWA.slice(1);
 
-            // SIMPAN WAKTU HAPUS KERANJANG (1 Jam = 3.600.000 ms)
-            localStorage.setItem('jadwal_hapus_keranjang', Date.now() + 3600000);
-
-            // Tembak langsung ke Aplikasi WhatsApp
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-            if (isMobile) {
-                window.location.href = `https://wa.me/${nomorWA}?text=${teksNota}`;
-            } else {
-                window.open(`https://web.whatsapp.com/send?phone=${nomorWA}&text=${teksNota}`, '_blank');
-            }
+            window.open(`https://wa.me/${nomorWA}?text=${teksNota}`, '_blank');
         }
-
-        
 
         function simpanBiodataLokal() {
             localStorage.setItem('cust_nama', document.getElementById('cust-nama').value);
@@ -1153,16 +1065,7 @@
         }
 
         function filterProduk() {
-            const input = document.getElementById('search-input');
-            const btnClear = document.getElementById('btnClearCari');
-            queryPencarian = input.value;
-            
-            // Tampilkan/sembunyikan tombol silang pencarian
-            if (queryPencarian !== '') {
-                btnClear.classList.remove('hidden');
-            } else {
-                btnClear.classList.add('hidden');
-            }
+            queryPencarian = document.getElementById('search-input').value;
             renderProduk();
         }
 
@@ -1203,17 +1106,5 @@
             });
         }
     </script>
-       // Fungsi ini otomatis berjalan saat web dibuka
-        (function periksaWaktuKeranjang() {
-            const jadwalHapus = localStorage.getItem('jadwal_hapus_keranjang');
-            if (jadwalHapus) {
-                if (Date.now() > parseInt(jadwalHapus)) {
-                    if (typeof kosongkanKeranjang === "function") {
-                        kosongkanKeranjang();
-                    }
-                    localStorage.removeItem('jadwal_hapus_keranjang');
-                }
-            }
-        })();
 </body>
 </html>
