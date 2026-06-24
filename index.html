@@ -3,14 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>Grosir Bersama - Mega Katalog</title>
-    
-    <meta property="og:title" content="Grosir Bersama - Mega Katalog">
-    <meta property="og:image" content="URL_GAMBAR_ANDA_DI_SINI">
-    <meta property="og:description" content="Temukan produk terbaik dengan harga grosir.">
     <link rel="manifest" href="manifest.json">
-    </head>
     <meta name="theme-color" content="#16a34a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -308,38 +302,7 @@
         function scrollToTop() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        <script>
-    // FUNGSI PENGUNCI / PENJEMPUT PRODUK
-    function cekDeepLink() {
-        const hash = window.location.hash; // Mengambil #/produk/123
-        if (!hash || !hash.includes('/produk/')) return;
 
-        const idProduk = hash.split('/')[2];
-        let percobaan = 0;
-
-        // Mencoba mencari elemen setiap 300ms sampai maksimal 15 kali
-        const interval = setInterval(() => {
-            const elemen = document.getElementById('produk-' + idProduk);
-            
-            if (elemen) {
-                // Elemen ditemukan, langsung fokus ke sana
-                elemen.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                
-                // Tambahkan efek visual agar user tahu produk yang dimaksud
-                elemen.classList.add('ring-4', 'ring-green-500', 'transition-all');
-                setTimeout(() => elemen.classList.remove('ring-4', 'ring-green-500'), 2000);
-                
-                clearInterval(interval); // Selesai, hentikan pengecekan
-            }
-            
-            percobaan++;
-            if (percobaan >= 15) clearInterval(interval); // Berhenti jika tidak ditemukan dalam ~4 detik
-        }, 300);
-    }
-
-    // Jalankan fungsi saat halaman selesai dimuat
-    window.addEventListener('load', cekDeepLink);
-</script>
         // Fungsi Reset/Clear Pencarian
         function clearPencarian() {
             const input = document.getElementById('search-input');
@@ -562,9 +525,6 @@
                 return;
             }
 
-            const skorKlik = ambilSkorKlikSemua();
-            produkFilter.sort((a, b) => (skorKlik[b.idProduk] || 0) - (skorKlik[a.idProduk] || 0));
-
             grid.innerHTML = produkFilter.map(p => {
                 const infoToko = databaseToko.find(t => t.id === p.idToko);
                 const namaTokoPajangan = infoToko ? infoToko.nama : p.idToko;
@@ -656,7 +616,6 @@
         function bukaModalDetail(idProduk) {
             const p = databaseProduk.find(prod => prod.idProduk === idProduk);
             if(!p) return;
-            catatKlikProduk(idProduk);
             const infoToko = databaseToko.find(t => t.id === p.idToko);
             
             const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `#/produk/${idProduk}`;
@@ -710,7 +669,6 @@
 
             const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             window.history.pushState({ path: cleanUrl }, '', cleanUrl);
-            renderProduk();
         }
 
         function prosesDeepLinkingURLLoad() {
@@ -779,24 +737,6 @@
             if (localData) {
                 wishlist = JSON.parse(localData);
             }
-        }
-
-        function catatKlikProduk(productId) {
-            if (!productId) return;
-            let skorKlik = {};
-            try {
-                const data = localStorage.getItem('gb_klik_produk');
-                if (data) skorKlik = JSON.parse(data);
-            } catch (e) { skorKlik = {}; }
-            skorKlik[productId] = (skorKlik[productId] || 0) + 1;
-            localStorage.setItem('gb_klik_produk', JSON.stringify(skorKlik));
-        }
-
-        function ambilSkorKlikSemua() {
-            try {
-                const data = localStorage.getItem('gb_klik_produk');
-                return data ? JSON.parse(data) : {};
-            } catch (e) { return {}; }
         }
 
         function inisialisasiPWAInstall() {
@@ -1253,12 +1193,17 @@
             }
         }
 
-        // ... kode lainnya ...
         function bagikanLinkTokoSaja() {
-            // ... kode fungsi ...
+            const linkToko = window.location.href;
+            navigator.clipboard.writeText(linkToko).then(() => {
+                alert("🔗 Link toko berhasil disalin! Silakan tempel (paste) dan bagikan ke WhatsApp pelanggan.");
+            }).catch(err => {
+                console.error("Gagal menyalin link: ", err);
+                alert("Gagal menyalin otomatis. Silakan salin langsung dari address bar browser Anda.");
+            });
         }
-
-        // Fungsi periksa waktu keranjang
+    </script>
+       // Fungsi ini otomatis berjalan saat web dibuka
         (function periksaWaktuKeranjang() {
             const jadwalHapus = localStorage.getItem('jadwal_hapus_keranjang');
             if (jadwalHapus) {
@@ -1270,6 +1215,5 @@
                 }
             }
         })();
-    </script>
 </body>
 </html>
