@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>Grosir Bersama - Mega Katalog</title>
+    
+    <meta property="og:title" content="Grosir Bersama - Mega Katalog">
+    <meta property="og:image" content="https://URL_GAMBAR_ANDA.jpg"> 
+    <meta property="og:description" content="Katalog produk terbaik harga grosir.">
     <link rel="manifest" href="manifest.json">
+    </head>
     <meta name="theme-color" content="#16a34a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -1216,16 +1222,12 @@
             }
         }
 
+        // ... kode lainnya ...
         function bagikanLinkTokoSaja() {
-            const linkToko = window.location.href;
-            navigator.clipboard.writeText(linkToko).then(() => {
-                alert("🔗 Link toko berhasil disalin! Silakan tempel (paste) dan bagikan ke WhatsApp pelanggan.");
-            }).catch(err => {
-                console.error("Gagal menyalin link: ", err);
-                alert("Gagal menyalin otomatis. Silakan salin langsung dari address bar browser Anda.");
-            });
+            // ... kode fungsi ...
         }
-         // Fungsi ini otomatis berjalan saat web dibuka
+
+        // Fungsi periksa waktu keranjang
         (function periksaWaktuKeranjang() {
             const jadwalHapus = localStorage.getItem('jadwal_hapus_keranjang');
             if (jadwalHapus) {
@@ -1238,6 +1240,5 @@
             }
         })();
     </script>
-      
 </body>
 </html>
