@@ -309,26 +309,31 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         // Tambahkan fungsi ini untuk membaca Hash URL
-function cekDeepLink() {
-    const hash = window.location.hash; // Contoh: #/produk/123
-    if (hash && hash.includes('/produk/')) {
-        const idProduk = hash.split('/')[2]; // Mengambil ID dari URL
-        
-        // Beri jeda sedikit agar data Google Sheets selesai dimuat
-        setTimeout(() => {
-            const elemenProduk = document.getElementById('produk-' + idProduk);
-            if (elemenProduk) {
-                elemenProduk.scrollIntoView(); // Langsung geser ke produk
-                // Jika Anda punya fungsi bukaModal, panggil di sini:
-                // bukaModalDetail(idProduk); 
+// Ganti bagian window.addEventListener('load', ...) yang lama dengan ini:
+window.addEventListener('load', function() {
+    // Kita gunakan interval untuk memantau apakah elemen sudah muncul
+    let percobaan = 0;
+    const interval = setInterval(() => {
+        const hash = window.location.hash;
+        if (hash && hash.includes('/produk/')) {
+            const idProduk = hash.split('/')[2];
+            const elemen = document.getElementById('produk-' + idProduk);
+            
+            if (elemen) {
+                // Elemen ditemukan! Kita scroll ke sana
+                elemen.scrollIntoView({ behavior: 'smooth' });
+                // Tambahkan efek visual (opsional, untuk memastikan user tahu itu produknya)
+                elemen.classList.add('ring-4', 'ring-green-500'); 
+                clearInterval(interval); // Hentikan pengecekan
             }
-        }, 1000); // Tunggu 1 detik agar data benar-benar siap
-    }
-}
+        } else {
+            clearInterval(interval); // Bukan link produk, berhenti mengecek
+        }
 
-// Jalankan fungsi ini saat aplikasi selesai memuat data
-// Letakkan pemanggilan ini di akhir fungsi yang memuat data produk Anda
-cekDeepLink();
+        percobaan++;
+        if (percobaan > 20) clearInterval(interval); // Berhenti setelah 10 detik (20x0.5s)
+    }, 500); // Cek setiap 0.5 detik
+});
         // Fungsi Reset/Clear Pencarian
         function clearPencarian() {
             const input = document.getElementById('search-input');
