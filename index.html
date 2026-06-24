@@ -564,11 +564,7 @@
                                 `<div class="text-center text-gray-400"><i class="fa-solid fa-image text-2xl"></i><span class="text-[10px] block mt-1">Foto belum tersedia</span></div>`
                             }
                             <span class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md font-medium max-w-[80%] truncate">${namaTokoPajangan}</span>
-                            <button onclick="bagikanProdukSpesifik(
-    '${p.nama}',
-    '${p.harga}',
-    '${p.idProduk}',
-    '${p.gambar || ''}'
+                            <button onclick="bagikanProdukSpesifik('${p.nama}', '${p.harga}', '${p.idProduk}', '${p.gambar || ''}'); event.stopPropagation();"
 ); event.stopPropagation();"" class="absolute top-2 left-2 w-7 h-7 bg-white/90 backdrop-blur-xs text-gray-600 rounded-full flex items-center justify-center shadow-xs hover:bg-emerald-600 hover:text-white transition active:scale-90" title="Bagikan produk ini">
                                 <i class="fa-solid fa-share-nodes text-[10px]"></i>
                             </button>
@@ -621,7 +617,7 @@
             if (gambar && gambar.trim() !== '') {
                 teksCadangan += `🖼️ Foto Produk: ${gambar.trim()}\n`;
             }
-            teksCadangan += `\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}#/produk/${idToko}`;
+            teksCadangan += `\nYuk cek dan pesan sekarang lewat katalog online di sini:\n${linkAplikasi}#/produk/${idProduk}
             
             const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(teksCadangan)}`;
             window.open(urlWA, '_blank');
