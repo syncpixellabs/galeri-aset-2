@@ -525,9 +525,6 @@
                 return;
             }
 
-            const skorKlik = ambilSkorKlikSemua();
-            produkFilter.sort((a, b) => (skorKlik[b.idProduk] || 0) - (skorKlik[a.idProduk] || 0));
-
             grid.innerHTML = produkFilter.map(p => {
                 const infoToko = databaseToko.find(t => t.id === p.idToko);
                 const namaTokoPajangan = infoToko ? infoToko.nama : p.idToko;
@@ -619,7 +616,6 @@
         function bukaModalDetail(idProduk) {
             const p = databaseProduk.find(prod => prod.idProduk === idProduk);
             if(!p) return;
-            catatKlikProduk(idProduk);
             const infoToko = databaseToko.find(t => t.id === p.idToko);
             
             const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `#/produk/${idProduk}`;
@@ -673,7 +669,6 @@
 
             const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             window.history.pushState({ path: cleanUrl }, '', cleanUrl);
-            renderProduk();
         }
 
         function prosesDeepLinkingURLLoad() {
@@ -742,24 +737,6 @@
             if (localData) {
                 wishlist = JSON.parse(localData);
             }
-        }
-
-        function catatKlikProduk(productId) {
-            if (!productId) return;
-            let skorKlik = {};
-            try {
-                const data = localStorage.getItem('gb_klik_produk');
-                if (data) skorKlik = JSON.parse(data);
-            } catch (e) { skorKlik = {}; }
-            skorKlik[productId] = (skorKlik[productId] || 0) + 1;
-            localStorage.setItem('gb_klik_produk', JSON.stringify(skorKlik));
-        }
-
-        function ambilSkorKlikSemua() {
-            try {
-                const data = localStorage.getItem('gb_klik_produk');
-                return data ? JSON.parse(data) : {};
-            } catch (e) { return {}; }
         }
 
         function inisialisasiPWAInstall() {
@@ -1225,7 +1202,8 @@
                 alert("Gagal menyalin otomatis. Silakan salin langsung dari address bar browser Anda.");
             });
         }
-         // Fungsi ini otomatis berjalan saat web dibuka
+    </script>
+       // Fungsi ini otomatis berjalan saat web dibuka
         (function periksaWaktuKeranjang() {
             const jadwalHapus = localStorage.getItem('jadwal_hapus_keranjang');
             if (jadwalHapus) {
@@ -1237,7 +1215,5 @@
                 }
             }
         })();
-    </script>
-      
 </body>
 </html>
