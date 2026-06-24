@@ -507,7 +507,7 @@
                         <div class="w-full h-32 bg-gray-50 rounded-xl mb-3 flex items-center justify-center text-gray-300 relative overflow-hidden">
                             ${p.gambar ? `<img src="${p.gambar}" class="w-full h-full object-cover" loading="lazy">` : `<i class="fa-solid fa-image text-3xl"></i>`}
                             <span class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md font-medium max-w-[80%] truncate">${namaTokoPajangan}</span>
-                            <button onclick="bagikanProdukSpesifik('${p.nama}', '${p.harga}', '${p.idToko}', '${p.gambar || ''}'); event.stopPropagation();" class="absolute top-2 left-2 w-7 h-7 bg-white/90 backdrop-blur-xs text-gray-600 rounded-full flex items-center justify-center shadow-xs hover:bg-emerald-600 hover:text-white transition active:scale-90" title="Bagikan produk ini">
+                            <button onclick="bagikanProdukSpesifik('${p.nama}', '${p.harga}', '${p.idToko}'); event.stopPropagation();" class="absolute top-2 left-2 w-7 h-7 bg-white/90 backdrop-blur-xs text-gray-600 rounded-full flex items-center justify-center shadow-xs hover:bg-emerald-600 hover:text-white transition active:scale-90" title="Bagikan produk ini">
                                 <i class="fa-solid fa-share-nodes text-[10px]"></i>
                             </button>
                         </div>
@@ -523,48 +523,10 @@
             }).join('');
         }
 
-        async function bagikanProdukSpesifik(nama, harga, idToko, gambar) {
+        function bagikanProdukSpesifik(nama, harga, idToko) {
             const linkAplikasi = window.location.href.split('?')[0].split('#')[0];
-            const teksShare = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${Number(harga).toLocaleString('id-ID')}*\n\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}#/produk/${idToko}`;
-
-            // Jika di HP dan mendukung fitur Web Share API, serta ada gambarnya
-            if (navigator.share && navigator.canShare && gambar && gambar.trim() !== '') {
-                try {
-                    const respon = await fetch(gambar);
-                    const blobAsli = await respon.blob();
-                    
-                    // Konversi ke Canvas & PNG agar kompatibel di semua sistem operasi
-                    const bitmap = await createImageBitmap(blobAsli);
-                    const canvas = document.createElement('canvas');
-                    canvas.width = bitmap.width;
-                    canvas.height = bitmap.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(bitmap, 0, 0);
-                    
-                    const blobPNG = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-                    const fileGambar = new File([blobPNG], 'produk.png', { type: 'image/png' });
-
-                    if (navigator.canShare({ files: [fileGambar] })) {
-                        await navigator.share({
-                            files: [fileGambar],
-                            title: nama,
-                            text: teksShare
-                        });
-                        return; // Berhasil kirim file gambar + teks caption
-                    }
-                } catch (error) {
-                    console.error("Gagal share via API, beralih ke teks biasa...", error);
-                }
-            }
-
-            // CADANGAN: Jika dibuka dari PC/Laptop atau API gagal, gunakan cara teks link standar WhatsApp
-            let teksCadangan = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${Number(harga).toLocaleString('id-ID')}*\n`;
-            if (gambar && gambar.trim() !== '') {
-                teksCadangan += `🖼️ Foto Produk: ${gambar.trim()}\n`;
-            }
-            teksCadangan += `\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}#/produk/${idToko}`;
-            
-            const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(teksCadangan)}`;
+            const teksShare = `Halo! Lihat produk menarik ini di Grosir Bersama:\n\n📦 *${nama}*\n💰 Harga: *Rp ${Number(harga).toLocaleString('id-ID')}*\n\nYuk cek dan pesan sekarang lewat katalog online di sini:\n🔗 ${linkAplikasi}`;
+            const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(teksShare)}`;
             window.open(urlWA, '_blank');
         }
 
